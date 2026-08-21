@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audit Training Exercise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:   #0D1B2A;
+    --slate:  #1B2B3B;
+    --panel:  #162333;
+    --border: #243447;
+    --text:   #EEF2F7;
+    --muted:  #6B7F94;
+    --accent: #B8922A;
+    --accent-light: #D4AE52;
+    --correct-border: #27AE72;
+    --wrong-border: #C0392B;
+    --radius: 10px;
+    --transition: 180ms ease;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--navy); color: var(--text);
+    min-height: 100vh; display: flex;
+    flex-direction: column; align-items: center;
+    padding: 0 16px 48px;
+  }
+  #top-stripe {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: var(--accent); width: 0%;
+    transition: width 0.4s ease; z-index: 100;
+  }
+  #start-screen {
+    max-width: 560px; width: 100%;
+    margin: auto; text-align: center; padding: 48px 0;
+  }
+  .brand-tag {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 28px;
+  }
+  #start-screen h1 {
+    font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 700;
+    line-height: 1.2; margin-bottom: 16px;
+  }
+  #start-screen p { font-size: 0.95rem; color: var(--muted); line-height: 1.7; margin-bottom: 40px; }
+  #start-screen p strong { color: var(--text); font-weight: 600; }
+  .meta-row { display: flex; justify-content: center; gap: 32px; margin-bottom: 40px; }
+  .meta-item .num { display: block; font-size: 1.6rem; font-weight: 700; color: var(--accent); }
+  .meta-item .lbl { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .btn-primary {
+    background: var(--accent); color: var(--navy); border: none;
+    padding: 14px 48px; font-family: 'Inter', sans-serif;
+    font-size: 0.95rem; font-weight: 700; border-radius: var(--radius);
+    cursor: pointer; transition: background var(--transition), transform var(--transition);
+    letter-spacing: 0.5px;
+  }
+  .btn-primary:hover { background: var(--accent-light); transform: translateY(-1px); }
+  #game-screen { display: none; max-width: 720px; width: 100%; padding-top: 48px; }
+  .stats-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 32px;
+  }
+  .stat-pill {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 100px; padding: 7px 18px;
+    font-size: 0.85rem; color: var(--muted);
+  }
+  .stat-pill strong { color: var(--text); font-weight: 600; }
+  .timer-wrap { position: relative; width: 64px; height: 64px; flex-shrink: 0; }
+  .timer-wrap svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
+  .timer-wrap circle { fill: none; stroke-width: 3; }
+  .timer-bg { stroke: var(--border); }
+  .timer-fg { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset 0.9s linear, stroke 0.4s; }
+  .timer-label {
+    position: absolute; inset: 0; display: flex;
+    align-items: center; justify-content: center;
+    font-size: 1.1rem; font-weight: 700; color: var(--text);
+  }
+  .streak-wrap {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 100px; padding: 7px 18px;
+    font-size: 0.85rem; color: var(--muted);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .streak-num { color: var(--accent); font-weight: 700; }
+  .mult-badge {
+    background: var(--accent); color: var(--navy);
+    font-size: 0.7rem; font-weight: 700;
+    padding: 2px 7px; border-radius: 100px;
+  }
+  .q-card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 28px 32px; margin-bottom: 4px;
+  }
+  .q-eyebrow {
+    font-size: 0.7rem; font-weight: 600; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 14px;
+  }
+  .q-text { font-size: 1rem; line-height: 1.7; white-space: pre-line; }
+  .q-progress { height: 2px; background: var(--border); border-radius: 0 0 var(--radius) var(--radius); margin-bottom: 20px; overflow: hidden; }
+  .q-progress-fill { height: 100%; background: var(--accent); transition: width 0.4s ease; }
+  .answers { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .ans-btn {
+    display: flex; align-items: flex-start;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+    cursor: pointer; transition: border-color var(--transition), background var(--transition);
+    text-align: left; width: 100%;
+  }
+  .ans-btn:hover:not(:disabled) { border-color: var(--accent); background: #1e3248; }
+  .ans-btn:disabled { cursor: default; }
+  .ans-indicator { width: 4px; flex-shrink: 0; align-self: stretch; background: var(--border); transition: background var(--transition); }
+  .ans-content { padding: 16px 20px; display: flex; align-items: baseline; gap: 10px; flex: 1; }
+  .ans-label { font-size: 0.75rem; font-weight: 700; color: var(--muted); flex-shrink: 0; text-transform: uppercase; letter-spacing: 0.5px; }
+  .ans-text { font-size: 0.95rem; line-height: 1.5; }
+  .ans-btn.correct { border-color: var(--correct-border); background: #0d2e1e; }
+  .ans-btn.correct .ans-indicator { background: var(--correct-border); }
+  .ans-btn.correct .ans-label { color: var(--correct-border); }
+  .ans-btn.wrong { border-color: var(--wrong-border); background: #2a0d0d; }
+  .ans-btn.wrong .ans-indicator { background: var(--wrong-border); }
+  .ans-btn.wrong .ans-label { color: var(--wrong-border); }
+  .ans-btn.reveal { border-color: var(--correct-border); background: #0d2e1e; }
+  .ans-btn.reveal .ans-indicator { background: var(--correct-border); }
+  .ans-btn.reveal .ans-label { color: var(--correct-border); }
+  .feedback-row { min-height: 36px; display: flex; align-items: center; font-size: 0.9rem; font-weight: 500; margin-bottom: 6px; padding: 0 2px; }
+  .feedback-row.correct { color: var(--correct-border); }
+  .feedback-row.wrong   { color: var(--wrong-border); }
+  .streak-msg { min-height: 24px; font-size: 0.85rem; color: var(--accent); margin-bottom: 16px; padding: 0 2px; font-style: italic; }
+  .leaderboard {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden; margin-bottom: 16px;
+    animation: slideDown 0.25s ease;
+  }
+  @keyframes slideDown { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+  .lb-header { padding: 14px 20px; border-bottom: 1px solid var(--border); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); display: flex; justify-content: space-between; }
+  .lb-row { display: flex; align-items: center; padding: 11px 20px; gap: 14px; border-bottom: 1px solid var(--border); font-size: 0.875rem; }
+  .lb-row:last-child { border-bottom: none; }
+  .lb-row.you { background: rgba(184,146,42,0.08); }
+  .lb-rank { width: 20px; font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+  .lb-name { flex: 1; }
+  .lb-row.you .lb-name { color: var(--accent); font-weight: 600; }
+  .lb-score { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .lb-row.you .lb-score { color: var(--accent); }
+  .lb-bar-wrap { width: 80px; }
+  .lb-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .lb-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; }
+  .btn-next {
+    display: block; width: 100%; background: transparent; color: var(--accent);
+    border: 1px solid var(--accent); padding: 13px; font-family: 'Inter', sans-serif;
+    font-size: 0.9rem; font-weight: 600; border-radius: var(--radius); cursor: pointer;
+    transition: background var(--transition), color var(--transition);
+  }
+  .btn-next:hover:not(:disabled) { background: var(--accent); color: var(--navy); }
+  .btn-next:disabled { opacity: 0.3; cursor: default; }
+  #end-screen { display: none; max-width: 560px; width: 100%; margin: auto; padding: 64px 0; text-align: center; }
+  .end-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; }
+  #end-screen h2 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+  .end-sub { font-size: 0.95rem; color: var(--muted); margin-bottom: 32px; }
+  .score-display { font-size: 3.5rem; font-weight: 700; color: var(--accent); letter-spacing: -1px; margin-bottom: 32px; }
+  .score-display span { font-size: 1.2rem; color: var(--muted); font-weight: 400; margin-left: 4px; }
+  .final-lb { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 24px; text-align: left; }
+  .record-note { background: rgba(184,146,42,0.08); border: 1px solid rgba(184,146,42,0.3); border-radius: var(--radius); padding: 14px 20px; font-size: 0.875rem; color: var(--accent); font-weight: 500; margin-bottom: 12px; }
+  .save-status { font-size: 0.8rem; color: var(--muted); margin-top: 8px; }
+  .save-status.ok { color: var(--correct-border); }
+</style>
+</head>
+<body>
+<div id="top-stripe"></div>
+
+<div id="start-screen">
+  <div class="brand-tag">Audit Training Exercise</div>
+  <h1>Test your knowledge of audit procedures</h1>
+  <p>Answer each question carefully. You will see a <strong>live leaderboard</strong> after every question. Build a streak to earn bonus points.</p>
+  <div class="meta-row">
+    <div class="meta-item"><span class="num">17</span><span class="lbl">Questions</span></div>
+    <div class="meta-item"><span class="num">60s</span><span class="lbl">Per question</span></div>
+    <div class="meta-item"><span class="num">2×</span><span class="lbl">Max multiplier</span></div>
+  </div>
+  <button class="btn-primary" onclick="startGame()">Begin exercise</button>
+</div>
+
+<div id="game-screen">
+  <div class="stats-bar">
+    <div class="stat-pill">Score <strong id="score-display">0</strong></div>
+    <div class="timer-wrap">
+      <svg width="64" height="64" viewBox="0 0 64 64">
+        <circle class="timer-bg" cx="32" cy="32" r="28"/>
+        <circle class="timer-fg" id="timer-arc" cx="32" cy="32" r="28" stroke-dasharray="175.9" stroke-dashoffset="0"/>
+      </svg>
+      <div class="timer-label" id="timer-num">60</div>
+    </div>
+    <div class="streak-wrap">🔥 <span class="streak-num" id="streak-display">0</span><span id="mult-badge"></span></div>
+  </div>
+  <div class="q-card">
+    <div class="q-eyebrow" id="q-eyebrow">Question 1 of 17</div>
+    <div class="q-text" id="q-text"></div>
+  </div>
+  <div class="q-progress"><div class="q-progress-fill" id="q-progress-fill" style="width:0%"></div></div>
+  <div class="answers" id="answers"></div>
+  <div class="feedback-row" id="feedback"></div>
+  <div class="streak-msg" id="streak-msg"></div>
+  <div class="leaderboard" id="leaderboard" style="display:none">
+    <div class="lb-header"><span>Participant</span><span>Score</span></div>
+    <div id="lb-rows"></div>
+  </div>
+  <button class="btn-next" id="btn-next" onclick="nextQuestion()" disabled>Continue →</button>
+</div>
+
+<div id="end-screen">
+  <div class="end-eyebrow">Exercise complete</div>
+  <h2>Well done.</h2>
+  <p class="end-sub">Here is how you finished.</p>
+  <div class="score-display" id="final-score">0 <span>pts</span></div>
+  <div class="final-lb" id="final-lb"></div>
+  <div class="record-note">Please note your final score and leaderboard rank before continuing.</div>
+  <div class="save-status" id="save-status">Saving results…</div>
+</div>
+
+<script>
+const CONDITION = "competitive";
+const TIMER_SEC = 60;
+const BASE_PTS  = 100;
+const CIRC      = 175.9;
+
+const questions = [
+  {q:"You want to ensure that transactions included in the sales journal are supported by receiving documents (e.g., purchase orders, bill of lading, sales invoices).\n\nWhat type of procedure should you perform?",options:["Confirmation","Reperformance","Inspection","Observation"],correct:2},
+  {q:"You want to ensure that transactions included in the sales journal are supported by receiving documents (e.g., purchase orders, bill of lading, sales invoices).\n\nDoes this procedure need to be performed in a specific direction?",options:["Yes, but the direction depends on which auditor performs the procedure","Yes, you should vouch from the sales journal back to the receiving documents","Yes, you should trace from the receiving documents to the sales journal","No, direction does not matter for this procedure"],correct:1},
+  {q:"You want to ensure that transactions included in the sales journal are supported by receiving documents (e.g., purchase orders, bill of lading, sales invoices).\n\nWhich assertion are you primarily addressing in this scenario?",options:["Existence/Occurrence","Valuation/Accuracy","Completeness","Cutoff"],correct:0},
+  {q:"While reviewing the client's accounts receivable balance, you want to determine whether any receivables have been pledged as collateral or factored to a third party.\n\nWhat procedure(s) could you perform?",options:["Confirmation, inquiry, inspection","Recalculation, reperformance, observation","Confirmation, inspection","Observation, inquiry, reperformance"],correct:2},
+  {q:"While reviewing the client's accounts receivable balance, you want to determine whether any receivables have been pledged as collateral or factored to a third party.\n\nWhich assertion(s) would you be addressing by performing these procedures?",options:["Existence, completeness, valuation","Rights and obligations, existence","Rights and obligations","Completeness, cutoff, valuation"],correct:2},
+  {q:"While reviewing the client's accounts receivable balance, you want to determine whether any receivables have been pledged as collateral or factored to a third party.\n\nIf you performed confirmation, who would you contact to verify whether the receivables have been pledged or factored?",options:["The client's management","The bank or lending institution","Individual vendor","Individual customer"],correct:1},
+  {q:"While reviewing the client's fixed asset schedule, you want to verify that the client has correctly calculated depreciation expense for the year using the appropriate method, useful life, and salvage value for each asset.\n\nWhat audit procedure should you perform?",options:["Recalculation","Observation","Inquiry","Reperformance"],correct:3},
+  {q:"While reviewing the client's fixed asset schedule, you want to verify that the client has correctly calculated depreciation expense for the year using the appropriate method, useful life, and salvage value for each asset.\n\nWhich assertion are you primarily addressing in this scenario?",options:["Existence/Occurrence","Valuation/Accuracy","Completeness","Cutoff"],correct:1},
+  {q:"You are auditing your client's revenue balance and notice that the company has several long-term contracts with customers. You want to understand how management applies its revenue recognition policy to these contracts in practice, including how performance obligations are identified and when revenue is recorded.\n\nWhat procedure should you perform?",options:["Observation","Inspection","Inquiry","Confirmation"],correct:2},
+  {q:"You are auditing your client's revenue balance and notice that the company has several long-term contracts with customers. You want to understand how management applies its revenue recognition policy to these contracts in practice, including how performance obligations are identified and when revenue is recorded.\n\nWhich assertion(s) are you primarily addressing in this scenario?",options:["Presentation and disclosure, valuation/accuracy","Existence/occurrence, rights and obligations","Existence/occurrence, completeness, valuation/accuracy","Completeness, cutoff"],correct:0},
+  {q:"You notice that your client's revenue in the final month of the fiscal year is significantly higher than the same period in prior years, while revenue in the first month of the following year is unusually low.\n\nWhat procedure did the auditor perform to identify this pattern?",options:["Reperformance","Recalculation","Confirmation","Analytical procedures"],correct:3},
+  {q:"You notice that your client's revenue in the final month of the fiscal year is significantly higher than the same period in prior years, while revenue in the first month of the following year is unusually low.\n\nWhich assertion are you primarily concerned about in this scenario?",options:["Existence/occurrence, completeness","Cutoff, existence/occurrence","Cutoff, valuation/accuracy","Completeness, valuation/accuracy"],correct:1},
+  {q:"A manufacturing company has an internal control policy stating that every box of electronics must be counted by two authorized staff members to prevent errors and fraud.\n\nWhat procedures would most directly allow you to determine whether the company has been following this policy?",options:["Inquiry, analytical procedures, reperformance","Inspection, recalculation","Observation, reperformance, inspection, inquiry","Confirmation, recalculation"],correct:2},
+  {q:"A manufacturing company has an internal control policy stating that every box of electronics must be counted by two authorized staff members to prevent errors and fraud.\n\nWhich assertion are you primarily addressing in this scenario?",options:["Existence/occurrence, completeness","Cutoff, valuation/accuracy","Existence/occurrence, valuation/accuracy","Completeness, presentation and disclosure"],correct:0},
+  {q:"During planning, you discover that your client has experienced recurring errors in their subsidiary ledger, including mispostings, omissions, and duplicate entries.\n\nWhat procedure should you perform to verify that the subsidiary ledger balances are accurately reflected in the general ledger?",options:["Recalculation","Inspection","Reperformance","Confirmation"],correct:0},
+  {q:"During planning, you discover that your client has experienced recurring errors in their subsidiary ledger, including mispostings, omissions, and duplicate entries.\n\nWhich of the following best describes what you would specifically do when performing this procedure?",options:["Trace individual transactions from the subsidiary ledger back to the original source documents","Reconcile the subsidiary ledger balances to third-party confirmations received from customers","Observe client personnel as they process and record transactions into the subsidiary ledger","Foot the individual customer balances in the subsidiary ledger and agree the total to the control account in the general ledger"],correct:3},
+  {q:"During planning, you discover that your client has experienced recurring errors in their subsidiary ledger, including mispostings, omissions, and duplicate entries.\n\nWhich assertion(s) are you primarily addressing by performing this procedure?",options:["Existence/occurrence, rights and obligations","Valuation/accuracy","Completeness, valuation/accuracy","Completeness, cutoff"],correct:1}
+];
+
+const fixedPlayers=[
+  {name:"A. Mitchell",score:1450},{name:"J. Torres",score:1250},
+  {name:"C. Reynolds",score:1050},{name:"R. Sanders",score:850},{name:"M. Liu",score:650}
+];
+
+const LABELS=['A','B','C','D'];
+let cQ=0,score=0,streak=0,maxStreak=0,correctCount=0,timedOutCount=0;
+let answered=false,timerInt=null,timeLeft=TIMER_SEC,qStart=null,gameStart=null,qLog=[];
+
+function mult(s){return s>=5?2:s>=3?1.5:s>=2?1.25:1;}
+
+function startGame(){
+  gameStart=Date.now();
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('game-screen').style.display='block';
+  loadQ();
+}
+
+function loadQ(){
+  answered=false;timeLeft=TIMER_SEC;qStart=Date.now();
+  document.getElementById('leaderboard').style.display='none';
+  document.getElementById('feedback').textContent='';
+  document.getElementById('feedback').className='feedback-row';
+  document.getElementById('streak-msg').textContent='';
+  document.getElementById('btn-next').disabled=true;
+  const q=questions[cQ];
+  document.getElementById('q-eyebrow').textContent=`Question ${cQ+1} of ${questions.length}`;
+  document.getElementById('q-text').textContent=q.q;
+  document.getElementById('q-progress-fill').style.width=`${(cQ/questions.length)*100}%`;
+  document.getElementById('top-stripe').style.width=`${(cQ/questions.length)*100}%`;
+  document.getElementById('score-display').textContent=score;
+  updateStreak();
+  const c=document.getElementById('answers');
+  c.innerHTML='';
+  q.options.forEach((opt,i)=>{
+    const btn=document.createElement('button');
+    btn.className='ans-btn';
+    btn.innerHTML=`<span class="ans-indicator"></span><span class="ans-content"><span class="ans-label">${LABELS[i]}</span><span class="ans-text">${opt}</span></span>`;
+    btn.onclick=()=>selectAns(i);
+    c.appendChild(btn);
+  });
+  startTimer();
+}
+
+function updateStreak(){
+  document.getElementById('streak-display').textContent=streak;
+  const m=mult(streak);
+  document.getElementById('mult-badge').innerHTML=m>1?`<span class="mult-badge">${m}×</span>`:'';
+}
+
+function startTimer(){
+  updateTimerUI(TIMER_SEC);
+  clearInterval(timerInt);
+  timerInt=setInterval(()=>{timeLeft--;updateTimerUI(timeLeft);if(timeLeft<=0){clearInterval(timerInt);if(!answered)expire();}},1000);
+}
+
+function updateTimerUI(t){
+  document.getElementById('timer-num').textContent=t;
+  const arc=document.getElementById('timer-arc');
+  arc.style.strokeDashoffset=CIRC*(1-t/TIMER_SEC);
+  arc.style.stroke=t<=10?'#C0392B':t<=20?'#D4AC0D':'#B8922A';
+}
+
+function selectAns(idx){
+  if(answered)return;
+  answered=true;clearInterval(timerInt);
+  const taken=Math.round((Date.now()-qStart)/1000);
+  const q=questions[cQ];
+  const btns=document.querySelectorAll('.ans-btn');
+  btns.forEach(b=>b.disabled=true);
+  const fb=document.getElementById('feedback');
+  const sm=document.getElementById('streak-msg');
+  let ok=false;
+  if(idx===q.correct){
+    btns[idx].classList.add('correct');
+    const m=mult(streak);const pts=Math.round(BASE_PTS*m);
+    score+=pts;streak++;maxStreak=Math.max(maxStreak,streak);correctCount++;ok=true;
+    fb.textContent=`Correct  +${pts} pts`;fb.className='feedback-row correct';
+    if(streak>=3)sm.textContent=`${streak}-question streak — keep it going`;else sm.textContent='';
+  }else{
+    btns[idx].classList.add('wrong');btns[q.correct].classList.add('reveal');
+    streak=0;fb.textContent='Incorrect';fb.className='feedback-row wrong';sm.textContent='';
+  }
+  qLog.push({answerChosen:LABELS[idx],wasCorrect:ok,timeTaken:taken,timedOut:false});
+  document.getElementById('score-display').textContent=score;
+  updateStreak();showLB();
+  document.getElementById('btn-next').disabled=false;
+}
+
+function expire(){
+  answered=true;
+  const q=questions[cQ];
+  const btns=document.querySelectorAll('.ans-btn');
+  btns.forEach(b=>b.disabled=true);
+  btns[q.correct].classList.add('reveal');
+  streak=0;timedOutCount++;
+  document.getElementById('feedback').textContent="Time's up";
+  document.getElementById('feedback').className='feedback-row wrong';
+  document.getElementById('streak-msg').textContent='';
+  qLog.push({answerChosen:'none',wasCorrect:false,timeTaken:TIMER_SEC,timedOut:true});
+  updateStreak();showLB();
+  document.getElementById('btn-next').disabled=false;
+}
+
+function showLB(){
+  document.getElementById('leaderboard').style.display='block';
+  const maxS=Math.max(...fixedPlayers.map(p=>p.score),score,1);
+  const all=[...fixedPlayers.map(p=>({...p})),{name:'You',score,you:true}];
+  all.sort((a,b)=>b.score-a.score);
+  const rows=document.getElementById('lb-rows');rows.innerHTML='';
+  all.forEach((p,i)=>{
+    const row=document.createElement('div');
+    row.className=`lb-row${p.you?' you':''}`;
+    const pct=Math.round((p.score/maxS)*100);
+    row.innerHTML=`<span class="lb-rank">${i+1}</span><span class="lb-name">${p.name}</span><span class="lb-bar-wrap"><div class="lb-bar"><div class="lb-bar-fill" style="width:${pct}%"></div></div></span><span class="lb-score">${p.score}</span>`;
+    rows.appendChild(row);
+  });
+}
+
+function nextQuestion(){cQ++;if(cQ>=questions.length)endGame();else loadQ();}
+
+function endGame(){
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('end-screen').style.display='block';
+  document.getElementById('final-score').innerHTML=`${score} <span>pts</span>`;
+  document.getElementById('top-stripe').style.width='100%';
+  const maxS=Math.max(...fixedPlayers.map(p=>p.score),score,1);
+  const all=[...fixedPlayers.map(p=>({...p})),{name:'You',score,you:true}];
+  all.sort((a,b)=>b.score-a.score);
+  const rank=all.findIndex(p=>p.you)+1;
+  const flb=document.getElementById('final-lb');
+  let html=`<div class="lb-header"><span>Participant</span><span>Score</span></div>`;
+  all.forEach((p,i)=>{
+    const pct=Math.round((p.score/maxS)*100);
+    html+=`<div class="lb-row${p.you?' you':''}"><span class="lb-rank">${i+1}</span><span class="lb-name">${p.name}</span><span class="lb-bar-wrap"><div class="lb-bar"><div class="lb-bar-fill" style="width:${pct}%"></div></div></span><span class="lb-score">${p.score}</span></div>`;
+  });
+  html+=`<div style="padding:12px 20px;font-size:0.8rem;color:var(--muted);border-top:1px solid var(--border)">Your rank: <strong style="color:var(--accent)">#${rank} of ${all.length}</strong></div>`;
+  flb.innerHTML=html;
+  const payload={condition:CONDITION,participantId:new URLSearchParams(window.location.search).get('pid')||'N/A',finalScore:score,correctAnswers:correctCount,totalQuestions:questions.length,accuracy:Math.round((correctCount/questions.length)*100),maxStreak,totalTime:Math.round((Date.now()-gameStart)/1000),timedOut:timedOutCount,questions:qLog};
+  fetch('/.netlify/functions/save-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    .then(r=>r.json())
+    .then(d=>{const s=document.getElementById('save-status');if(d.result==='success'){s.textContent='Results saved.';s.className='save-status ok';}else{s.textContent='Results could not be saved automatically.';}})
+    .catch(()=>{document.getElementById('save-status').textContent='Results could not be saved automatically.';});
+}
+</script>
+</body>
+</html>
