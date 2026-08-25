@@ -21,6 +21,7 @@ audit-training/
 
 - Competitive:      https://audit-trainer.netlify.app/competitive
 - No-competition:   https://audit-trainer.netlify.app/no-competition
+- Team:             https://audit-trainer.netlify.app/team
 
 ## Setup instructions
 
