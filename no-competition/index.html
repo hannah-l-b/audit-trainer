@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audit Training Exercise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #F0F4F8;
+    --panel:   #FFFFFF;
+    --border:  #CBD5E1;
+    --text:    #0F1B2A;
+    --muted:   #64748B;
+    --accent:  #B8922A;
+    --accent-light: #D4AE52;
+    --accent-bg: rgba(184,146,42,0.08);
+    --correct: #16A34A;
+    --correct-bg: #F0FDF4;
+    --correct-border: #16A34A;
+    --wrong:   #DC2626;
+    --wrong-bg: #FEF2F2;
+    --wrong-border: #DC2626;
+    --radius:  12px;
+    --shadow:  0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 16px 48px;
+  }
+
+  /* ── TOP STRIPE ── */
+  #top-stripe {
+    position: fixed; top: 0; left: 0; height: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-light));
+    width: 0%; transition: width 0.5s ease; z-index: 200;
+  }
+
+  /* ── START SCREEN ── */
+  #start-screen {
+    max-width: 560px; width: 100%;
+    margin: auto; text-align: center; padding: 64px 0;
+  }
+  .brand-tag {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    letter-spacing: 3px; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 32px;
+    padding: 6px 16px; border: 1px solid var(--accent);
+    border-radius: 100px;
+  }
+  #start-screen h1 {
+    font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 800;
+    line-height: 1.15; margin-bottom: 16px; color: var(--text);
+  }
+  #start-screen p { font-size: 1rem; color: var(--muted); line-height: 1.7; margin-bottom: 40px; }
+  #start-screen p strong { color: var(--text); font-weight: 600; }
+  .meta-row { display: flex; justify-content: center; gap: 0; margin-bottom: 40px; }
+  .meta-item {
+    text-align: center; padding: 20px 32px;
+    border-right: 1px solid var(--border);
+  }
+  .meta-item:last-child { border-right: none; }
+  .meta-item .num { display: block; font-size: 2rem; font-weight: 800; color: var(--accent); line-height: 1; }
+  .meta-item .lbl { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }
+  .btn-primary {
+    background: var(--accent); color: #fff; border: none;
+    padding: 16px 52px; font-family: 'Inter', sans-serif;
+    font-size: 1rem; font-weight: 700; border-radius: 100px;
+    cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(184,146,42,0.35);
+  }
+  .btn-primary:hover { background: var(--accent-light); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(184,146,42,0.4); }
+
+  /* ── GAME SCREEN ── */
+  #game-screen { display: none; max-width: 720px; width: 100%; padding-top: 56px; }
+
+  .stats-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .stat-pill {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 100px; padding: 8px 20px;
+    font-size: 0.875rem; color: var(--muted);
+    box-shadow: var(--shadow);
+  }
+  .stat-pill strong { color: var(--text); font-weight: 700; }
+
+  /* Score with animation */
+  .score-wrap { position: relative; }
+  .score-pop {
+    position: absolute; top: -32px; left: 50%; transform: translateX(-50%);
+    font-size: 0.85rem; font-weight: 800; color: var(--correct);
+    animation: popUp 1s ease forwards; pointer-events: none; white-space: nowrap;
+  }
+  @keyframes popUp {
+    0%   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-24px); }
+  }
+
+  .timer-wrap { position: relative; width: 68px; height: 68px; flex-shrink: 0; }
+  .timer-wrap svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
+  .timer-wrap circle { fill: none; stroke-width: 4; }
+  .timer-bg { stroke: var(--border); }
+  .timer-fg { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset 0.9s linear, stroke 0.4s; }
+  .timer-label {
+    position: absolute; inset: 0; display: flex;
+    align-items: center; justify-content: center;
+    font-size: 1.2rem; font-weight: 800; color: var(--text);
+  }
+
+  .streak-wrap {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 100px; padding: 8px 20px;
+    font-size: 0.875rem; color: var(--muted);
+    display: flex; align-items: center; gap: 6px;
+    box-shadow: var(--shadow);
+  }
+  .streak-num { color: var(--accent); font-weight: 800; }
+  .mult-badge {
+    background: var(--accent); color: #fff;
+    font-size: 0.7rem; font-weight: 800;
+    padding: 2px 8px; border-radius: 100px;
+  }
+
+  /* Progress */
+  .q-progress { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 20px; overflow: hidden; }
+  .q-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-light)); transition: width 0.5s ease; }
+
+  /* Question card */
+  .q-card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 32px 36px; margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+  .q-eyebrow {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 2.5px;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 16px;
+  }
+  .q-text { font-size: 1rem; line-height: 1.75; color: var(--text); white-space: pre-line; }
+
+  /* Answers */
+  .answers { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .ans-btn {
+    display: flex; align-items: stretch;
+    background: var(--panel); border: 1.5px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+    cursor: pointer; transition: all 0.15s;
+    text-align: left; width: 100%;
+    box-shadow: var(--shadow);
+  }
+  .ans-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(184,146,42,0.15), var(--shadow);
+    transform: translateY(-1px);
+  }
+  .ans-btn:disabled { cursor: default; transform: none; }
+  .ans-indicator { width: 5px; flex-shrink: 0; background: var(--border); transition: background 0.15s; }
+  .ans-content { padding: 18px 22px; display: flex; align-items: baseline; gap: 12px; flex: 1; }
+  .ans-label {
+    font-size: 0.75rem; font-weight: 800; color: var(--muted);
+    flex-shrink: 0; text-transform: uppercase; letter-spacing: 1px;
+    background: var(--bg); border-radius: 6px;
+    padding: 3px 8px; line-height: 1.4;
+  }
+  .ans-text { font-size: 0.975rem; color: var(--text); line-height: 1.5; font-weight: 500; }
+
+  .ans-btn.correct { border-color: var(--correct-border); background: var(--correct-bg); }
+  .ans-btn.correct .ans-indicator { background: var(--correct-border); }
+  .ans-btn.correct .ans-label { background: #DCFCE7; color: var(--correct); }
+  .ans-btn.correct .ans-text { color: #166534; font-weight: 600; }
+
+  .ans-btn.wrong { border-color: var(--wrong-border); background: var(--wrong-bg); }
+  .ans-btn.wrong .ans-indicator { background: var(--wrong-border); }
+  .ans-btn.wrong .ans-label { background: #FEE2E2; color: var(--wrong); }
+  .ans-btn.wrong .ans-text { color: #991B1B; }
+
+  .ans-btn.reveal { border-color: var(--correct-border); background: var(--correct-bg); }
+  .ans-btn.reveal .ans-indicator { background: var(--correct-border); }
+  .ans-btn.reveal .ans-label { background: #DCFCE7; color: var(--correct); }
+  .ans-btn.reveal .ans-text { color: #166534; font-weight: 600; }
+
+  /* Feedback */
+  .feedback-row {
+    min-height: 40px; display: flex; align-items: center; gap: 10px;
+    font-size: 0.95rem; font-weight: 600; margin-bottom: 6px;
+    padding: 10px 16px; border-radius: 8px;
+    transition: all 0.2s;
+  }
+  .feedback-row.correct { background: var(--correct-bg); color: #166534; border: 1px solid #BBF7D0; }
+  .feedback-row.wrong   { background: var(--wrong-bg); color: #991B1B; border: 1px solid #FECACA; }
+  .feedback-row.empty   { background: transparent; border: none; }
+
+  .streak-msg {
+    min-height: 28px; font-size: 0.875rem; font-weight: 600;
+    color: var(--accent); margin-bottom: 16px; padding: 0 4px;
+    text-align: center;
+  }
+
+  /* Next button */
+  .btn-next {
+    display: block; width: 100%;
+    background: var(--text); color: #fff;
+    border: none; padding: 15px; font-family: 'Inter', sans-serif;
+    font-size: 0.95rem; font-weight: 700; border-radius: var(--radius);
+    cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(15,27,42,0.2);
+  }
+  .btn-next:hover:not(:disabled) { background: #1e3252; transform: translateY(-1px); }
+  .btn-next:disabled { opacity: 0.3; cursor: default; transform: none; }
+
+  /* ── KAHOOT LEADERBOARD OVERLAY ── */
+  #lb-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 300;
+    background: linear-gradient(135deg, #0D1B2A 0%, #1B2B3B 100%);
+    flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  #lb-overlay.active { display: flex; }
+
+  .lb-overlay-title {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .lb-overlay-sub {
+    font-size: 0.875rem; color: #6B7F94; margin-bottom: 32px;
+  }
+
+  .lb-cards { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 8px; }
+
+  .lb-card {
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; padding: 14px 20px;
+    opacity: 0; transform: translateX(40px);
+    transition: opacity 0.35s ease, transform 0.35s ease, background 0.3s;
+  }
+  .lb-card.you {
+    background: rgba(184,146,42,0.15);
+    border-color: rgba(184,146,42,0.4);
+  }
+  .lb-card.animate-in { opacity: 1; transform: translateX(0); }
+  .lb-card.shake {
+    animation: shake 0.5s ease 0.4s;
+  }
+  .lb-card.rise {
+    animation: rise 0.5s ease 0.4s;
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%      { transform: translateX(-6px); }
+    40%      { transform: translateX(6px); }
+    60%      { transform: translateX(-4px); }
+    80%      { transform: translateX(4px); }
+  }
+  @keyframes rise {
+    0%   { transform: translateY(0); }
+    40%  { transform: translateY(-10px); }
+    70%  { transform: translateY(-6px); }
+    100% { transform: translateY(0); }
+  }
+
+  .lb-rank-num {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 800; flex-shrink: 0;
+    background: rgba(255,255,255,0.1); color: #fff;
+  }
+  .lb-rank-num.gold   { background: #B8922A; color: #fff; }
+  .lb-rank-num.silver { background: #64748B; color: #fff; }
+  .lb-rank-num.bronze { background: #9A6B3A; color: #fff; }
+
+  .lb-card-name { flex: 1; font-size: 0.95rem; font-weight: 600; color: #EEF2F7; }
+  .lb-card.you .lb-card-name { color: var(--accent-light); }
+
+  .lb-rank-arrow {
+    font-size: 0.75rem; font-weight: 700;
+    padding: 2px 8px; border-radius: 100px; margin-right: 4px;
+  }
+  .lb-rank-arrow.up   { background: rgba(22,163,74,0.2); color: #4ADE80; }
+  .lb-rank-arrow.same { background: rgba(100,116,139,0.2); color: #94A3B8; }
+
+  .lb-card-score {
+    font-size: 1rem; font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: #EEF2F7;
+  }
+  .lb-card.you .lb-card-score { color: var(--accent-light); }
+
+  .lb-continue {
+    margin-top: 28px; background: var(--accent); color: #fff;
+    border: none; padding: 14px 48px; font-family: 'Inter', sans-serif;
+    font-size: 0.95rem; font-weight: 700; border-radius: 100px;
+    cursor: pointer; transition: all 0.2s;
+    opacity: 0; transform: translateY(10px);
+    box-shadow: 0 4px 14px rgba(184,146,42,0.4);
+  }
+  .lb-continue.visible { opacity: 1; transform: translateY(0); transition: all 0.4s ease 0.1s; }
+  .lb-continue:hover { background: var(--accent-light); transform: translateY(-2px); }
+
+  /* ── END SCREEN ── */
+  #end-screen {
+    display: none; max-width: 560px; width: 100%;
+    margin: auto; padding: 64px 0; text-align: center;
+  }
+  .end-eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 20px;
+    display: inline-block; padding: 6px 16px;
+    border: 1px solid var(--accent); border-radius: 100px;
+  }
+  #end-screen h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 8px; }
+  .end-sub { font-size: 1rem; color: var(--muted); margin-bottom: 32px; }
+  .score-display {
+    font-size: 4rem; font-weight: 800; color: var(--accent);
+    letter-spacing: -2px; margin-bottom: 32px; line-height: 1;
+  }
+  .score-display span { font-size: 1.2rem; color: var(--muted); font-weight: 400; margin-left: 4px; letter-spacing: 0; }
+  .final-lb {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden; margin-bottom: 24px;
+    box-shadow: var(--shadow); text-align: left;
+  }
+  .final-lb-header {
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--muted);
+    display: flex; justify-content: space-between;
+  }
+  .final-lb-row {
+    display: flex; align-items: center; padding: 12px 20px;
+    gap: 14px; border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+  }
+  .final-lb-row:last-child { border-bottom: none; }
+  .final-lb-row.you { background: var(--accent-bg); }
+  .final-lb-rank { width: 24px; font-size: 0.8rem; color: var(--muted); font-weight: 700; }
+  .final-lb-name { flex: 1; color: var(--text); font-weight: 500; }
+  .final-lb-row.you .final-lb-name { color: var(--accent); font-weight: 700; }
+  .final-lb-score { font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+  .final-lb-row.you .final-lb-score { color: var(--accent); }
+
+  .record-note {
+    background: var(--accent-bg); border: 1px solid rgba(184,146,42,0.3);
+    border-radius: var(--radius); padding: 16px 20px;
+    font-size: 0.875rem; color: #92400E; font-weight: 500; margin-bottom: 12px;
+  }
+  .save-status { font-size: 0.8rem; color: var(--muted); margin-top: 8px; }
+  .save-status.ok { color: var(--correct); font-weight: 600; }
+</style>
+</head>
+<body>
+<div id="top-stripe"></div>
+
+<!-- START -->
+<div id="start-screen">
+  <div class="brand-tag">Audit Training Exercise</div>
+  <h1>Test your audit procedure knowledge</h1>
+  <p>Answer each question carefully. A <strong>30-second timer</strong> runs for each question. Try to answer as accurately as you can.</p>
+  <div class="meta-row">
+    <div class="meta-item"><span class="num">17</span><span class="lbl">Questions</span></div>
+    <div class="meta-item"><span class="num">30s</span><span class="lbl">Per question</span></div>
+    <div class="meta-item"><span class="num">2×</span><span class="lbl">Max multiplier</span></div>
+  </div>
+  <button class="btn-primary" onclick="startGame()">Begin exercise</button>
+</div>
+
+<!-- GAME -->
+<div id="game-screen">
+  <div class="stats-bar">
+    <div class="stat-pill score-wrap">
+      Score <strong id="score-display">0</strong>
+    </div>
+    <div class="timer-wrap">
+      <svg width="68" height="68" viewBox="0 0 68 68">
+        <circle class="timer-bg" cx="34" cy="34" r="30"/>
+        <circle class="timer-fg" id="timer-arc" cx="34" cy="34" r="30"
+          stroke-dasharray="188.5" stroke-dashoffset="0"/>
+      </svg>
+      <div class="timer-label" id="timer-num">30</div>
+    </div>
+    <div style="width:100px"></div>
+  </div>
+
+  <div class="q-progress"><div class="q-progress-fill" id="q-progress-fill" style="width:0%"></div></div>
+
+  <div class="q-card">
+    <div class="q-eyebrow" id="q-eyebrow">Question 1 of 17</div>
+    <div class="q-text" id="q-text"></div>
+  </div>
+
+  <div class="answers" id="answers"></div>
+  <div class="feedback-row empty" id="feedback"></div>
+
+  <button class="btn-next" id="btn-next" onclick="nextQuestion()" disabled>Continue →</button>
+</div>
+
+<!-- END -->
+<div id="end-screen">
+  <div class="end-eyebrow">Exercise complete</div>
+  <h2>Well done.</h2>
+  <p class="end-sub">Here is how you finished.</p>
+  <div class="score-display" id="final-score">0 <span>pts</span></div>
+  <div class="final-lb" id="final-lb"></div>
+  <div class="record-note">📋 Please note your final score before continuing to the next part of the study.</div>
+  <div class="save-status" id="save-status">Saving results…</div>
+</div>
+
+<script>
+const CONDITION = "no-competition";
+const TIMER_SEC = 30;
+const BASE_PTS  = 100;
+const CIRC      = 188.5;
+
+const STREAK_MESSAGES = {
+  2: "Nice! Keep it going! 👍",
+  3: "You're on a roll! 🔥",
+  4: "Four in a row — don't break it! 🔥🔥",
+  5: "On fire! 2× multiplier activated! 🔥🔥🔥",
+  6: "Incredible! 6-question streak! 🔥🔥🔥",
+  7: "Unstoppable! 🔥🔥🔥"
+};
+
+const MISS_MESSAGES = [
+  "Keep going — you've got this!",
+  "Stay focused, next one's yours.",
+  "Shake it off and move on.",
+  "You're still in it — keep pushing.",
+  "Don't worry, every question is a fresh start."
+];
+
+const questions = [
+  {q:"You want to ensure that transactions included in the sales journal are supported by receiving documents (e.g., purchase orders, bill of lading, sales invoices).\n\nWhat type of procedure should you perform?",options:["Confirmation","Reperformance","Inspection","Observation"],correct:2},
+  {q:"You want to ensure that transactions included in the sales journal are supported by receiving documents (e.g., purchase orders, bill of lading, sales invoices).\n\nDoes this procedure need to be performed in a specific direction?",options:["Yes, but the direction depends on which auditor performs the procedure","Yes, you should vouch from the sales journal back to the receiving documents","Yes, you should trace from the receiving documents to the sales journal","No, direction does not matter for this procedure"],correct:1},
+  {q:"You want to ensure that transactions included in the sales journal are supported by receiving documents (e.g., purchase orders, bill of lading, sales invoices).\n\nWhich assertion are you primarily addressing in this scenario?",options:["Existence/Occurrence","Valuation/Accuracy","Completeness","Cutoff"],correct:0},
+  {q:"While reviewing the client's accounts receivable balance, you want to determine whether any receivables have been pledged as collateral or factored to a third party.\n\nWhat procedure(s) could you perform?",options:["Confirmation, inquiry, inspection","Recalculation, reperformance, observation","Confirmation, inspection","Observation, inquiry, reperformance"],correct:2},
+  {q:"While reviewing the client's accounts receivable balance, you want to determine whether any receivables have been pledged as collateral or factored to a third party.\n\nWhich assertion(s) would you be addressing by performing these procedures?",options:["Existence, completeness, valuation","Rights and obligations, existence","Rights and obligations","Completeness, cutoff, valuation"],correct:2},
+  {q:"While reviewing the client's accounts receivable balance, you want to determine whether any receivables have been pledged as collateral or factored to a third party.\n\nIf you performed confirmation, who would you contact to verify whether the receivables have been pledged or factored?",options:["The client's management","The bank or lending institution","Individual vendor","Individual customer"],correct:1},
+  {q:"While reviewing the client's fixed asset schedule, you want to verify that the client has correctly calculated depreciation expense for the year using the appropriate method, useful life, and salvage value for each asset.\n\nWhat audit procedure should you perform?",options:["Recalculation","Observation","Inquiry","Reperformance"],correct:3},
+  {q:"While reviewing the client's fixed asset schedule, you want to verify that the client has correctly calculated depreciation expense for the year using the appropriate method, useful life, and salvage value for each asset.\n\nWhich assertion are you primarily addressing in this scenario?",options:["Existence/Occurrence","Valuation/Accuracy","Completeness","Cutoff"],correct:1},
+  {q:"You are auditing your client's revenue balance and notice that the company has several long-term contracts with customers. You want to understand how management applies its revenue recognition policy to these contracts in practice, including how performance obligations are identified and when revenue is recorded.\n\nWhat procedure should you perform?",options:["Observation","Inspection","Inquiry","Confirmation"],correct:2},
+  {q:"You are auditing your client's revenue balance and notice that the company has several long-term contracts with customers. You want to understand how management applies its revenue recognition policy to these contracts in practice, including how performance obligations are identified and when revenue is recorded.\n\nWhich assertion(s) are you primarily addressing in this scenario?",options:["Presentation and disclosure, valuation/accuracy","Existence/occurrence, rights and obligations","Existence/occurrence, completeness, valuation/accuracy","Completeness, cutoff"],correct:0},
+  {q:"You notice that your client's revenue in the final month of the fiscal year is significantly higher than the same period in prior years, while revenue in the first month of the following year is unusually low.\n\nWhat procedure did the auditor perform to identify this pattern?",options:["Reperformance","Recalculation","Confirmation","Analytical procedures"],correct:3},
+  {q:"You notice that your client's revenue in the final month of the fiscal year is significantly higher than the same period in prior years, while revenue in the first month of the following year is unusually low.\n\nWhich assertion are you primarily concerned about in this scenario?",options:["Existence/occurrence, completeness","Cutoff, existence/occurrence","Cutoff, valuation/accuracy","Completeness, valuation/accuracy"],correct:1},
+  {q:"A manufacturing company has an internal control policy stating that every box of electronics must be counted by two authorized staff members to prevent errors and fraud.\n\nWhat procedures would most directly allow you to determine whether the company has been following this policy?",options:["Inquiry, analytical procedures, reperformance","Inspection, recalculation","Observation, reperformance, inspection, inquiry","Confirmation, recalculation"],correct:2},
+  {q:"A manufacturing company has an internal control policy stating that every box of electronics must be counted by two authorized staff members to prevent errors and fraud.\n\nWhich assertion are you primarily addressing in this scenario?",options:["Existence/occurrence, completeness","Cutoff, valuation/accuracy","Existence/occurrence, valuation/accuracy","Completeness, presentation and disclosure"],correct:0},
+  {q:"During planning, you discover that your client has experienced recurring errors in their subsidiary ledger, including mispostings, omissions, and duplicate entries.\n\nWhat procedure should you perform to verify that the subsidiary ledger balances are accurately reflected in the general ledger?",options:["Recalculation","Inspection","Reperformance","Confirmation"],correct:0},
+  {q:"During planning, you discover that your client has experienced recurring errors in their subsidiary ledger, including mispostings, omissions, and duplicate entries.\n\nWhich of the following best describes what you would specifically do when performing this procedure?",options:["Trace individual transactions from the subsidiary ledger back to the original source documents","Reconcile the subsidiary ledger balances to third-party confirmations received from customers","Observe client personnel as they process and record transactions into the subsidiary ledger","Foot the individual customer balances in the subsidiary ledger and agree the total to the control account in the general ledger"],correct:3},
+  {q:"During planning, you discover that your client has experienced recurring errors in their subsidiary ledger, including mispostings, omissions, and duplicate entries.\n\nWhich assertion(s) are you primarily addressing by performing this procedure?",options:["Existence/occurrence, rights and obligations","Valuation/accuracy","Completeness, valuation/accuracy","Completeness, cutoff"],correct:1}
+];
+
+const fixedPlayers = [
+  {name:"A. Mitchell",score:1450},
+  {name:"J. Torres",score:1250},
+  {name:"C. Reynolds",score:1050},
+  {name:"R. Sanders",score:850},
+  {name:"M. Liu",score:650}
+];
+
+const LABELS = ['A','B','C','D'];
+
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+let cQ=0, score=0, streak=0, maxStreak=0, correctCount=0, timedOutCount=0;
+let answered=false, timerInt=null, timeLeft=TIMER_SEC, qStart=null, gameStart=null, qLog=[];
+let prevRank = null;
+
+function mult(s){ return s>=5?2:s>=3?1.5:s>=2?1.25:1; }
+
+function getRank(sc){
+  const all = [...fixedPlayers, {name:'You', score:sc}];
+  all.sort((a,b)=>b.score-a.score);
+  return all.findIndex(p=>p.name==='You')+1;
+}
+
+function startGame(){
+  shuffle(questions);
+  gameStart=Date.now();
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('game-screen').style.display='block';
+  loadQ();
+}
+
+function loadQ(){
+  answered=false; timeLeft=TIMER_SEC; qStart=Date.now();
+  document.getElementById('feedback').textContent='';
+  document.getElementById('feedback').className='feedback-row empty';
+  document.getElementById('streak-msg').textContent='';
+  document.getElementById('btn-next').disabled=true;
+  document.getElementById('btn-next').textContent='Continue →';
+
+  const q=questions[cQ];
+  document.getElementById('q-eyebrow').textContent=`Question ${cQ+1} of ${questions.length}`;
+  document.getElementById('q-text').textContent=q.q;
+  document.getElementById('q-progress-fill').style.width=`${(cQ/questions.length)*100}%`;
+  document.getElementById('top-stripe').style.width=`${(cQ/questions.length)*100}%`;
+  document.getElementById('score-display').textContent=score;
+  updateStreak();
+
+  const c=document.getElementById('answers');
+  c.innerHTML='';
+  q.options.forEach((opt,i)=>{
+    const btn=document.createElement('button');
+    btn.className='ans-btn';
+    btn.innerHTML=`<span class="ans-indicator"></span><span class="ans-content"><span class="ans-label">${LABELS[i]}</span><span class="ans-text">${opt}</span></span>`;
+    btn.onclick=()=>selectAns(i);
+    c.appendChild(btn);
+  });
+  startTimer();
+}
+
+function updateStreak(){
+  document.getElementById('streak-display').textContent=streak;
+  const m=mult(streak);
+  document.getElementById('mult-badge').innerHTML=m>1?`<span class="mult-badge">${m}×</span>`:'';
+}
+
+function startTimer(){
+  updateTimerUI(TIMER_SEC);
+  clearInterval(timerInt);
+  timerInt=setInterval(()=>{
+    timeLeft--;
+    updateTimerUI(timeLeft);
+    if(timeLeft<=0){ clearInterval(timerInt); if(!answered) expire(); }
+  },1000);
+}
+
+function updateTimerUI(t){
+  document.getElementById('timer-num').textContent=t;
+  const arc=document.getElementById('timer-arc');
+  arc.style.strokeDashoffset=CIRC*(1-t/TIMER_SEC);
+  arc.style.stroke=t<=10?'#DC2626':t<=20?'#D97706':'#B8922A';
+}
+
+function animateScore(pts){
+  const wrap=document.querySelector('.score-wrap');
+  const pop=document.createElement('span');
+  pop.className='score-pop';
+  pop.textContent=`+${pts}`;
+  wrap.appendChild(pop);
+  setTimeout(()=>pop.remove(), 1000);
+}
+
+function selectAns(idx){
+  if(answered) return;
+  answered=true;
+  clearInterval(timerInt);
+  const taken=Math.round((Date.now()-qStart)/1000);
+  const q=questions[cQ];
+  const btns=document.querySelectorAll('.ans-btn');
+  btns.forEach(b=>b.disabled=true);
+  const fb=document.getElementById('feedback');
+  let ok=false;
+
+  if(idx===q.correct){
+    btns[idx].classList.add('correct');
+    const m=mult(streak);
+    const pts=Math.round(BASE_PTS*m);
+    score+=pts; streak++; maxStreak=Math.max(maxStreak,streak); correctCount++; ok=true;
+    fb.textContent='✓  Correct!';
+    fb.className='feedback-row correct';
+    document.getElementById('score-display').textContent=score;
+
+  } else {
+    btns[idx].classList.add('wrong');
+    btns[q.correct].classList.add('reveal');
+    streak=0;
+    const miss=MISS_MESSAGES[Math.floor(Math.random()*MISS_MESSAGES.length)];
+    fb.textContent=`✗  Incorrect — ${miss}`;
+    fb.className='feedback-row wrong';
+  }
+
+  qLog.push({answerChosen:LABELS[idx],wasCorrect:ok,timeTaken:taken,timedOut:false});
+  updateStreak();
+  document.getElementById('btn-next').disabled=false;
+}
+
+function expire(){
+  answered=true;
+  const q=questions[cQ];
+  const btns=document.querySelectorAll('.ans-btn');
+  btns.forEach(b=>b.disabled=true);
+  btns[q.correct].classList.add('reveal');
+  streak=0; timedOutCount++;
+  const miss=MISS_MESSAGES[Math.floor(Math.random()*MISS_MESSAGES.length)];
+  document.getElementById('feedback').textContent=`⏰  Time's up — ${miss}`;
+  document.getElementById('feedback').className='feedback-row wrong';
+  document.getElementById('streak-msg').textContent='';
+  qLog.push({answerChosen:'none',wasCorrect:false,timeTaken:TIMER_SEC,timedOut:true});
+  updateStreak();
+  document.getElementById('btn-next').disabled=false;
+}
+
+function showLeaderboard(){
+  const overlay=document.getElementById('lb-overlay');
+  const cards=document.getElementById('lb-cards');
+  const cont=document.getElementById('lb-continue');
+  const sub=document.getElementById('lb-overlay-sub');
+
+  overlay.classList.add('active');
+  cont.classList.remove('visible');
+  cards.innerHTML='';
+  sub.textContent=`After question ${cQ+1}`;
+
+  const maxS=Math.max(...fixedPlayers.map(p=>p.score),score,1);
+  const all=[...fixedPlayers.map(p=>({...p})),{name:'You',score,you:true}];
+  all.sort((a,b)=>b.score-a.score);
+  const newRank=all.findIndex(p=>p.you)+1;
+
+  all.forEach((p,i)=>{
+    const card=document.createElement('div');
+    card.className=`lb-card${p.you?' you':''}`;
+
+    let rankClass='';
+    if(i===0) rankClass='gold';
+    else if(i===1) rankClass='silver';
+    else if(i===2) rankClass='bronze';
+
+    let arrowHTML='';
+    if(p.you && prevRank!==null){
+      if(newRank<prevRank) arrowHTML=`<span class="lb-rank-arrow up">↑ ${prevRank-newRank}</span>`;
+      else arrowHTML=`<span class="lb-rank-arrow same">—</span>`;
+    }
+
+    card.innerHTML=`
+      <div class="lb-rank-num ${rankClass}">${i+1}</div>
+      <div class="lb-card-name">${p.name}</div>
+      ${arrowHTML}
+      <div class="lb-card-score">${p.score}</div>
+    `;
+    cards.appendChild(card);
+
+    setTimeout(()=>{
+      card.classList.add('animate-in');
+      if(p.you){
+        setTimeout(()=>{
+          if(prevRank!==null && newRank<prevRank) card.classList.add('rise');
+          else if(prevRank!==null) card.classList.add('shake');
+        }, 400);
+      }
+    }, i*120);
+  });
+
+  prevRank=newRank;
+
+  setTimeout(()=>cont.classList.add('visible'), all.length*120+800);
+}
+
+function nextQuestion(){
+  document.getElementById('lb-overlay').classList.remove('active');
+  cQ++;
+  if(cQ>=questions.length) endGame();
+  else loadQ();
+}
+
+function endGame(){
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('end-screen').style.display='block';
+  document.getElementById('final-score').innerHTML=`${score} <span>pts</span>`;
+  document.getElementById('top-stripe').style.width='100%';
+
+  const all=[...fixedPlayers.map(p=>({...p})),{name:'You',score,you:true}];
+  all.sort((a,b)=>b.score-a.score);
+  const rank=all.findIndex(p=>p.you)+1;
+
+  const flb=document.getElementById('final-lb');
+  let html=`<div class="final-lb-header"><span>Final Standings</span><span>Score</span></div>`;
+  all.forEach((p,i)=>{
+    html+=`<div class="final-lb-row${p.you?' you':''}">
+      <span class="final-lb-rank">${i+1}</span>
+      <span class="final-lb-name">${p.name}</span>
+      <span class="final-lb-score">${p.score}</span>
+    </div>`;
+  });
+  html+=`<div style="padding:12px 20px;font-size:0.8rem;color:var(--muted);border-top:1px solid var(--border)">Your rank: <strong style="color:var(--accent)">#${rank} of ${all.length}</strong></div>`;
+  flb.innerHTML=html;
+
+  const payload={condition:CONDITION,participantId:new URLSearchParams(window.location.search).get('pid')||'N/A',finalScore:score,correctAnswers:correctCount,totalQuestions:questions.length,accuracy:Math.round((correctCount/questions.length)*100),maxStreak,totalTime:Math.round((Date.now()-gameStart)/1000),timedOut:timedOutCount,questions:qLog};
+  fetch('/.netlify/functions/save-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+    .then(r=>r.json())
+    .then(d=>{const s=document.getElementById('save-status');if(d.result==='success'){s.textContent='✓ Results saved.';s.className='save-status ok';}else{s.textContent='Results could not be saved automatically.';}})
+    .catch(()=>{document.getElementById('save-status').textContent='Results could not be saved automatically.';});
+}
+</script>
+</body>
+</html>
