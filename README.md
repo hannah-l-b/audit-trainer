@@ -19,8 +19,8 @@ audit-training/
 
 ## Game links (after deploying to Netlify)
 
-- Competitive:      https://your-site.netlify.app/competitive
-- No-competition:   https://your-site.netlify.app/no-competition
+- Competitive:      https://audit-trainer.netlify.app/competitive
+- No-competition:   https://audit-trainer.netlify.app/no-competition
 
 ## Setup instructions
 
