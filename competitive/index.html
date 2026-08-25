@@ -478,6 +478,9 @@ const fixedPlayers = [
 
 const LABELS = ['A','B','C','D'];
 
+// Tag each question with its original index before any shuffling
+questions.forEach((q,i)=>q.originalIndex=i);
+
 function shuffle(arr){
   for(let i=arr.length-1;i>0;i--){
     const j=Math.floor(Math.random()*(i+1));
@@ -486,7 +489,7 @@ function shuffle(arr){
   return arr;
 }
 let cQ=0, score=0, streak=0, maxStreak=0, correctCount=0, timedOutCount=0;
-let answered=false, timerInt=null, timeLeft=TIMER_SEC, qStart=null, gameStart=null, qLog=[];
+let answered=false, timerInt=null, timeLeft=TIMER_SEC, qStart=null, gameStart=null, qLog=[], questionOrder=[];
 let prevRank = null;
 
 function mult(s){ return s>=5?2:s>=3?1.5:s>=2?1.25:1; }
@@ -499,6 +502,7 @@ function getRank(sc){
 
 function startGame(){
   shuffle(questions);
+  questionOrder=questions.map(q=>q.originalIndex);
   gameStart=Date.now();
   document.getElementById('start-screen').style.display='none';
   document.getElementById('game-screen').style.display='block';
@@ -703,7 +707,7 @@ function endGame(){
   html+=`<div style="padding:12px 20px;font-size:0.8rem;color:var(--muted);border-top:1px solid var(--border)">Your rank: <strong style="color:var(--accent)">#${rank} of ${all.length}</strong></div>`;
   flb.innerHTML=html;
 
-  const payload={condition:CONDITION,participantId:new URLSearchParams(window.location.search).get('pid')||'N/A',finalScore:score,correctAnswers:correctCount,totalQuestions:questions.length,accuracy:Math.round((correctCount/questions.length)*100),maxStreak,totalTime:Math.round((Date.now()-gameStart)/1000),timedOut:timedOutCount,questions:qLog};
+  const payload={condition:CONDITION,participantId:new URLSearchParams(window.location.search).get('pid')||'N/A',finalScore:score,correctAnswers:correctCount,totalQuestions:questions.length,accuracy:Math.round((correctCount/questions.length)*100),maxStreak,totalTime:Math.round((Date.now()-gameStart)/1000),timedOut:timedOutCount,questionOrder:questionOrder,questions:qLog};
   fetch('/.netlify/functions/save-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(r=>r.json())
     .then(d=>{const s=document.getElementById('save-status');if(d.result==='success'){s.textContent='✓ Results saved.';s.className='save-status ok';}else{s.textContent='Results could not be saved automatically.';}})
