@@ -18,6 +18,9 @@
 //      total_time    → int8
 //      timed_out_count → int8
 //      question_log  → jsonb
+//      question_order → jsonb
+//      partner_score →  int8
+//      combined_score → int8
 // 5. Go to Project Settings → API
 // 6. Copy "Project URL" and paste below as SUPABASE_URL
 // 7. Copy "anon public" key and paste below as SUPABASE_ANON_KEY
@@ -54,7 +57,9 @@ exports.handler = async function(event) {
       total_time:       data.totalTime,
       timed_out_count:  data.timedOut,
       question_log:     data.questions,  // stored as JSON
-      question_order:   data.questionOrder   // original indices in order shown
+      question_order:   data.questionOrder,   // original indices in order shown
+      partner_score:    data.partnerScore || null, 
+      combined_score:   data.combinedScore || null
     };
 
     const response = await fetch(`${SUPABASE_URL}/rest/v1/results`, {
