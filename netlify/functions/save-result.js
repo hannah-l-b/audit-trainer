@@ -53,7 +53,8 @@ exports.handler = async function(event) {
       max_streak:       data.maxStreak,
       total_time:       data.totalTime,
       timed_out_count:  data.timedOut,
-      question_log:     data.questions  // stored as JSON
+      question_log:     data.questions,  // stored as JSON
+      question_order:   data.questionOrder   // original indices in order shown
     };
 
     const response = await fetch(`${SUPABASE_URL}/rest/v1/results`, {
