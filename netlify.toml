@@ -5,14 +5,17 @@
 [functions]
   node_bundler = "esbuild"
 
-# Serve competitive game at /competitive
 [[redirects]]
   from = "/competitive"
   to   = "/competitive/index.html"
   status = 200
 
-# Serve no-competition game at /no-competition
 [[redirects]]
   from = "/no-competition"
   to   = "/no-competition/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/team"
+  to   = "/team/index.html"
   status = 200
