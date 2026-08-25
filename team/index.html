@@ -119,17 +119,39 @@
   }
 
   .streak-wrap {
-    background: var(--panel); border: 1px solid var(--border);
+    background: var(--panel); border: 2px solid var(--border);
     border-radius: 100px; padding: 8px 20px;
     font-size: 0.875rem; color: var(--muted);
-    display: flex; align-items: center; gap: 6px;
+    display: flex; align-items: center; gap: 8px;
     box-shadow: var(--shadow);
+    transition: all 0.3s ease;
   }
-  .streak-num { color: var(--accent); font-weight: 800; }
+  .streak-wrap.active {
+    border-color: var(--accent);
+    background: rgba(184,146,42,0.08);
+    box-shadow: 0 0 0 3px rgba(184,146,42,0.2), var(--shadow);
+  }
+  .streak-num {
+    color: var(--accent); font-weight: 800;
+    font-size: 1.2rem; min-width: 20px; text-align: center;
+    transition: transform 0.2s ease;
+  }
+  .streak-num.pop { animation: streakPop 0.3s ease; }
+  @keyframes streakPop {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.6); }
+    100% { transform: scale(1); }
+  }
   .mult-badge {
     background: var(--accent); color: #fff;
-    font-size: 0.7rem; font-weight: 800;
-    padding: 2px 8px; border-radius: 100px;
+    font-size: 0.8rem; font-weight: 800;
+    padding: 4px 10px; border-radius: 100px;
+    box-shadow: 0 2px 8px rgba(184,146,42,0.4);
+    animation: badgePulse 1.5s ease infinite;
+  }
+  @keyframes badgePulse {
+    0%,100% { box-shadow: 0 2px 8px rgba(184,146,42,0.4); }
+    50%      { box-shadow: 0 2px 16px rgba(184,146,42,0.7); }
   }
 
   /* Progress */
@@ -150,6 +172,24 @@
 
   /* Answers */
   .answers { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .reading-bar-wrap {
+    margin-bottom: 12px; display: none;
+  }
+  .reading-bar-wrap.visible { display: block; }
+  .reading-label {
+    font-size: 0.75rem; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 6px; text-align: center;
+  }
+  .reading-bar {
+    height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;
+  }
+  .reading-bar-fill {
+    height: 100%; background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.1s linear;
+  }
+  .answers.hidden { visibility: hidden; pointer-events: none; }
   .ans-btn {
     display: flex; align-items: stretch;
     background: var(--panel); border: 1.5px solid var(--border);
@@ -400,7 +440,11 @@
     <div class="q-text" id="q-text"></div>
   </div>
 
-  <div class="answers" id="answers"></div>
+  <div class="reading-bar-wrap" id="reading-bar-wrap">
+    <div class="reading-label" id="reading-label">Read the question — answers appear in 10s</div>
+    <div class="reading-bar"><div class="reading-bar-fill" id="reading-bar-fill" style="width:0%"></div></div>
+  </div>
+  <div class="answers hidden" id="answers"></div>
   <div class="feedback-row empty" id="feedback"></div>
   <div class="streak-msg" id="streak-msg"></div>
   <button class="btn-next" id="btn-next" onclick="showLeaderboard()" disabled>See leaderboard →</button>
@@ -525,7 +569,7 @@ const LABELS = ['A','B','C','D'];
 
 
 let cQ=0, score=0, streak=0, maxStreak=0, correctCount=0, timedOutCount=0;
-let answered=false, timerInt=null, timeLeft=TIMER_SEC, qStart=null, gameStart=null, qLog=[], questionOrder=[];
+let answered=false, timerInt=null, timeLeft=TIMER_SEC, readInt=null, readTimeLeft=10, qStart=null, gameStart=null, qLog=[], questionOrder=[];
 let prevRank = null;
 
 function mult(s){ return s>=5?2:s>=3?1.5:s>=2?1.25:1; }
@@ -570,13 +614,48 @@ function loadQ(){
     btn.onclick=()=>selectAns(i);
     c.appendChild(btn);
   });
-  startTimer();
+  startReadingPhase();
 }
 
 function updateStreak(){
-  document.getElementById('streak-display').textContent=streak;
+  const el=document.getElementById('streak-display');
+  const wrap=document.querySelector('.streak-wrap');
+  el.textContent=streak;
+  // Pop animation on streak increase
+  el.classList.remove('pop');
+  void el.offsetWidth; // reflow
+  if(streak>0) el.classList.add('pop');
+  // Active glow when on a streak
+  if(streak>=2) wrap.classList.add('active');
+  else wrap.classList.remove('active');
   const m=mult(streak);
   document.getElementById('mult-badge').innerHTML=m>1?`<span class="mult-badge">${m}×</span>`:'';
+}
+
+function startReadingPhase(){
+  // Show reading bar, hide answers
+  const wrap=document.getElementById('reading-bar-wrap');
+  const fill=document.getElementById('reading-bar-fill');
+  const label=document.getElementById('reading-label');
+  const answers=document.getElementById('answers');
+  wrap.classList.add('visible');
+  answers.classList.add('hidden');
+  fill.style.width='0%';
+  readTimeLeft=10;
+  clearInterval(readInt);
+  readInt=setInterval(()=>{
+    readTimeLeft--;
+    const pct=((10-readTimeLeft)/10)*100;
+    fill.style.width=pct+'%';
+    if(readTimeLeft<=3) label.textContent=`Answers appear in ${readTimeLeft}s…`;
+    if(readTimeLeft<=0){
+      clearInterval(readInt);
+      wrap.classList.remove('visible');
+      answers.classList.remove('hidden');
+      label.textContent='Read the question — answers appear in 10s';
+      startTimer();
+    }
+  },1000);
 }
 
 function startTimer(){
@@ -609,6 +688,7 @@ function selectAns(idx){
   if(answered) return;
   answered=true;
   clearInterval(timerInt);
+  clearInterval(readInt);
   const taken=Math.round((Date.now()-qStart)/1000);
   const q=questions[cQ];
   const btns=document.querySelectorAll('.ans-btn');
@@ -645,6 +725,7 @@ function selectAns(idx){
 
 function expire(){
   answered=true;
+  clearInterval(readInt);
   const q=questions[cQ];
   const btns=document.querySelectorAll('.ans-btn');
   btns.forEach(b=>b.disabled=true);
