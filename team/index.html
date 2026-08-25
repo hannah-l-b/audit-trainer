@@ -367,7 +367,7 @@
 <div id="start-screen">
   <div class="brand-tag">Audit Training Exercise</div>
   <h1>Test your audit procedure knowledge</h1>
-  <p>Answer each question carefully. Your score will be <strong>combined with your partner's</strong> score. A live team leaderboard appears after every question.</p>
+  <p>Answer each question carefully. Your partner has already completed the exercise and scored <strong>750 points</strong>. Your score will be added to theirs, and a live team leaderboard will show your combined standing after every question.</p>
   <div class="meta-row">
     <div class="meta-item"><span class="num">17</span><span class="lbl">Questions</span></div>
     <div class="meta-item"><span class="num">30s</span><span class="lbl">Per question</span></div>
@@ -527,7 +527,7 @@ function loadQ(){
   document.getElementById('q-text').textContent=q.q;
   document.getElementById('q-progress-fill').style.width=`${(cQ/questions.length)*100}%`;
   document.getElementById('top-stripe').style.width=`${(cQ/questions.length)*100}%`;
-  document.getElementById('score-display').textContent=score;
+  document.getElementById('score-display').textContent=MANAGER_SCORE+score;
   updateStreak();
 
   const c=document.getElementById('answers');
@@ -594,7 +594,7 @@ function selectAns(idx){
     fb.textContent=`✓  Correct! +${pts} points`;
     fb.className='feedback-row correct';
     animateScore(pts);
-    document.getElementById('score-display').textContent=score;
+    document.getElementById('score-display').textContent=MANAGER_SCORE+score;
     const msg=STREAK_MESSAGES[Math.min(streak,7)]||`${streak}-question streak! 🔥🔥🔥`;
     sm.textContent=streak>=2?msg:'';
   } else {
