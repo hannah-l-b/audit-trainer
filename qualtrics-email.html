@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+    background: transparent;
+    color: #242424;
+    font-size: 14px;
+  }
+
+  /* ── EMAIL PANEL ── */
+  .email-panel {
+    border: 1px solid #d1d1d1;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  }
+
+  /* ── OUTLOOK TOP BAR ── */
+  .ol-topbar {
+    background: #0f6cbd;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .ol-logo {
+    display: flex; align-items: center; gap: 6px;
+    color: #fff; font-size: 15px; font-weight: 600;
+  }
+  .ol-logo-icon {
+    width: 20px; height: 20px;
+    background: #fff;
+    border-radius: 2px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 900; color: #0f6cbd;
+  }
+  .ol-subject-bar {
+    flex: 1; display: flex; align-items: center; gap: 8px; margin-left: 8px;
+  }
+  .ol-subject { font-size: 13px; font-weight: 600; color: #fff; }
+  .ol-badge {
+    background: rgba(255,255,255,0.2);
+    color: #fff; font-size: 11px;
+    padding: 2px 8px; border-radius: 10px;
+  }
+
+  /* ── ACTION BAR ── */
+  .ol-actionbar {
+    background: #f5f5f5;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 5px 14px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .ol-action-btn {
+    display: flex; align-items: center; gap: 4px;
+    padding: 4px 10px; border: none;
+    background: transparent; color: #424242;
+    font-size: 12px; cursor: pointer;
+    border-radius: 3px; font-family: inherit;
+    transition: background 0.1s;
+  }
+  .ol-action-btn:hover { background: #e8e8e8; }
+  .ol-action-btn svg { width: 13px; height: 13px; }
+
+  /* ── THREAD ── */
+  .ol-thread {
+    background: #fff;
+    max-height: 380px;
+    overflow-y: auto;
+  }
+
+  .ol-msg {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.1s;
+  }
+  .ol-msg:last-child { border-bottom: none; }
+  .ol-msg:hover { background: #fafafa; }
+
+  .ol-msg-top {
+    display: flex; align-items: flex-start;
+    gap: 10px; margin-bottom: 8px;
+  }
+
+  .ol-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: #fff;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .avatar-laura  { background: #7b4fb5; }
+  .avatar-you    { background: #0f7b0f; }
+
+  .ol-msg-header { flex: 1; min-width: 0; }
+  .ol-msg-name {
+    font-size: 13px; font-weight: 600;
+    color: #0f6cbd; display: inline;
+  }
+  .ol-msg-to {
+    font-size: 11px; color: #616161; margin-top: 1px;
+  }
+  .ol-msg-to span { color: #424242; }
+
+  .ol-msg-meta {
+    display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+    flex-shrink: 0;
+  }
+  .ol-msg-time { font-size: 11px; color: #616161; white-space: nowrap; }
+  .ol-msg-actions {
+    display: flex; gap: 2px;
+  }
+  .ol-mini-btn {
+    padding: 3px 7px; border: none; background: transparent;
+    font-size: 11px; color: #424242; cursor: pointer;
+    border-radius: 3px; font-family: inherit;
+    display: flex; align-items: center; gap: 3px;
+    transition: background 0.1s;
+  }
+  .ol-mini-btn:hover { background: #e8e8e8; }
+  .ol-mini-btn svg { width: 11px; height: 11px; }
+
+  .ol-msg-body {
+    font-size: 13px; line-height: 1.6; color: #242424;
+    padding-left: 42px;
+    white-space: pre-wrap;
+  }
+  .ol-msg-body.you-body { color: #424242; }
+
+  /* Typing indicator */
+  .ol-typing {
+    display: none; padding: 12px 16px; align-items: center; gap: 10px;
+  }
+  .ol-typing.visible { display: flex; }
+  .typing-dots { display: flex; gap: 3px; padding-left: 42px; align-items: center; }
+  .typing-dot {
+    width: 6px; height: 6px; background: #0f6cbd;
+    border-radius: 50%; animation: typBounce 1.2s infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typBounce {
+    0%,60%,100% { transform: translateY(0); opacity: 0.4; }
+    30%          { transform: translateY(-5px); opacity: 1; }
+  }
+  .typing-label { font-size: 11px; color: #616161; padding-left: 8px; font-style: italic; }
+
+  /* ── REPLY COMPOSE ── */
+  .ol-compose {
+    border-top: 2px solid #0f6cbd;
+    background: #fff;
+    padding: 12px 16px 14px;
+  }
+  .ol-compose-header {
+    font-size: 11px; color: #616161;
+    margin-bottom: 8px; padding-bottom: 7px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .ol-compose-row { display: flex; gap: 4px; }
+  .ol-compose-label { font-weight: 600; color: #424242; min-width: 30px; }
+  .ol-compose-val { color: #242424; }
+
+  .ol-textarea {
+    width: 100%;
+    min-height: 76px;
+    border: 1px solid #d1d1d1;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    resize: none; outline: none;
+    color: #242424; line-height: 1.5;
+    transition: border-color 0.15s;
+  }
+  .ol-textarea:focus { border-color: #0f6cbd; box-shadow: 0 0 0 1px #0f6cbd; }
+  .ol-textarea::placeholder { color: #c7c7c7; }
+
+  .ol-compose-footer {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-top: 10px;
+  }
+  .ol-hint { font-size: 11px; color: #c7c7c7; }
+
+  .ol-send-btn {
+    background: #0f6cbd; color: #fff; border: none;
+    padding: 6px 18px; border-radius: 4px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    display: flex; align-items: center; gap: 6px;
+    transition: background 0.15s;
+  }
+  .ol-send-btn:hover { background: #115ea3; }
+  .ol-send-btn:disabled { background: #d1d1d1; cursor: default; }
+  .ol-send-btn svg { width: 13px; height: 13px; }
+
+  .ol-status { font-size: 11px; color: #616161; margin-top: 6px; text-align: right; font-style: italic; min-height: 14px; }
+
+  /* Scrollbar */
+  .ol-thread::-webkit-scrollbar { width: 6px; }
+  .ol-thread::-webkit-scrollbar-track { background: transparent; }
+  .ol-thread::-webkit-scrollbar-thumb { background: #d1d1d1; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ── EMAIL PANEL ── -->
+<div class="email-panel" id="email-panel">
+
+  <!-- Top bar -->
+  <div class="ol-topbar">
+    <div class="ol-logo">
+      <div class="ol-logo-icon">O</div>
+      Outlook
+    </div>
+    <div class="ol-subject-bar">
+      <span class="ol-subject">RE: Career Forward — Internal Controls Review</span>
+      <span class="ol-badge">Audit Engagement</span>
+    </div>
+  </div>
+
+  <!-- Action bar -->
+  <div class="ol-actionbar">
+    <button class="ol-action-btn">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M1.5 1h13a.5.5 0 01.5.5v13a.5.5 0 01-.5.5h-13a.5.5 0 01-.5-.5v-13a.5.5 0 01.5-.5zm.5 1v12h12V2H2zm2 2h8v1H4V4zm0 3h8v1H4V7zm0 3h5v1H4v-1z"/></svg>
+      Inbox
+    </button>
+    <button class="ol-action-btn">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.5 1a.5.5 0 01.5.5V5h-1V2H2v12h4v1H1.5a.5.5 0 01-.5-.5v-13a.5.5 0 01.5-.5h12zM8 7.5A1.5 1.5 0 119.5 9 1.5 1.5 0 018 7.5zm1.5 2.5a3 3 0 013 3H6.5a3 3 0 013-3z"/></svg>
+      Laura Wardwell
+    </button>
+    <div style="margin-left:auto;font-size:11px;color:#616161;font-style:italic;">Career Forward Audit · Internal Controls</div>
+  </div>
+
+  <!-- Thread -->
+  <div class="ol-thread" id="thread">
+
+    <!-- Initial manager message -->
+    <div class="ol-msg">
+      <div class="ol-msg-top">
+        <div class="ol-avatar avatar-laura">LW</div>
+        <div class="ol-msg-header">
+          <div class="ol-msg-name">Laura Wardwell</div>
+          <div class="ol-msg-to">To: <span>You</span></div>
+        </div>
+        <div class="ol-msg-meta">
+          <div class="ol-msg-time" id="init-time"></div>
+          <div class="ol-msg-actions">
+            <button class="ol-mini-btn">
+              <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11 5L6 9.5 1 5"/></svg>
+              Reply
+            </button>
+            <button class="ol-mini-btn">···</button>
+          </div>
+        </div>
+      </div>
+      <div class="ol-msg-body">Hi — I'm currently working on another client's audit, but send me a message if you need anything and I'll get back to you when I can.
+
+
+Laura Wardwell, CPA
+Audit Manager | Career Forward Engagement Team</div>
+    </div>
+
+    <!-- Typing row -->
+    <div class="ol-typing" id="typing-row">
+      <div style="flex:1">
+        <div class="typing-dots">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <span class="typing-label">Laura Wardwell is typing…</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /thread -->
+
+  <!-- Compose -->
+  <div class="ol-compose">
+    <div class="ol-compose-header">
+      <div class="ol-compose-row">
+        <span class="ol-compose-label">To:</span>
+        <span class="ol-compose-val">Laura Wardwell &lt;l.wardwell@auditfirm.com&gt;</span>
+      </div>
+      <div class="ol-compose-row">
+        <span class="ol-compose-label">Subject:</span>
+        <span class="ol-compose-val">RE: Career Forward — Internal Controls Review</span>
+      </div>
+    </div>
+    <textarea id="compose" class="ol-textarea"></textarea>
+    <div class="ol-compose-footer">
+      <span class="ol-hint">Shift+Enter for new line · Enter to send</span>
+      <button class="ol-send-btn" id="send-btn" onclick="sendMessage()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+        Send
+      </button>
+    </div>
+    <div class="ol-status" id="ol-status"></div>
+  </div>
+
+</div><!-- /email-panel -->
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────
+// Paste your Anthropic API key below
+const API_KEY = "YOUR_ANTHROPIC_API_KEY_HERE";
+
+// Update this per Qualtrics page using piped text: ${e://Field/CurrentControl}
+const CURRENT_CONTROL = "the internal control currently shown on this page";
+
+const SYSTEM_PROMPT = `You are Laura Wardwell, a CPA and audit manager overseeing a nonprofit audit engagement for Career Forward, a workforce development nonprofit. A staff auditor is asking you questions about internal controls they are reviewing.
+
+Respond naturally and professionally as a manager would. You have the following information about the engagement:
+
+WHAT YOU KNOW:
+- Career Forward has been operating since 1998 with generally stable finances
+- They recently received a one-time federal grant of $400,000 which inflated current year figures
+- An internal controls review found significant deficiencies (not material weaknesses) related to expense allocation between program, administrative, and fundraising categories
+- The grants manager internally flags uncertain expenses but these flags are not formally communicated to the Executive Director before submission
+- The board secretary's spouse serves on the advisory board of a major corporate sponsor
+- A government funding agency compliance review found no significant issues with prior grant fund allocation
+
+RESPONSE RULES:
+- Keep responses to 2-4 sentences maximum
+- Respond only to what was asked, do not volunteer extra information
+- If asked something outside your knowledge, say: I do not have that information in front of me right now
+- Never mention that you are an AI or that responses are automated
+- Write conversationally, no bullet points or headers
+- Always sign off with a professional signature block, exactly as follows:
+
+Laura Wardwell, CPA
+Audit Manager
+Career Forward Engagement Team`;
+// ─────────────────────────────────────────────────────────────
+
+let conversationHistory = [];
+let isWaiting = false;
+let emailOpened = false;
+
+function getTime() {
+  return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+document.getElementById('init-time').textContent = getTime();
+
+// ── RESTORE CONVERSATION HISTORY FROM PREVIOUS PAGES ──
+function saveHistory() {
+  sessionStorage.setItem('lauraConversation', JSON.stringify(conversationHistory));
+  sessionStorage.setItem('lauraThread', document.getElementById('thread').innerHTML);
+}
+
+function restoreHistory() {
+  const savedHistory = sessionStorage.getItem('lauraConversation');
+  const savedThread  = sessionStorage.getItem('lauraThread');
+  if (savedHistory && savedThread) {
+    conversationHistory = JSON.parse(savedHistory);
+    // Restore rendered thread but keep typing row at the end
+    const thread   = document.getElementById('thread');
+    const typingRow = document.getElementById('typing-row');
+    thread.innerHTML = savedThread;
+    // Re-append typing row (it gets wiped by innerHTML)
+    const newTyping = document.createElement('div');
+    newTyping.className = 'ol-typing';
+    newTyping.id = 'typing-row';
+    newTyping.innerHTML = `<div style="flex:1"><div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div><span class="typing-label">Laura Wardwell is typing…</span></div></div>`;
+    thread.appendChild(newTyping);
+    thread.scrollTop = thread.scrollHeight;
+    // Previous messages restored — panel always visible
+  }
+}
+
+restoreHistory();
+
+
+
+function appendMessage(text, isManager) {
+  const thread = document.getElementById('thread');
+  const typingRow = document.getElementById('typing-row');
+
+  const msg = document.createElement('div');
+  msg.className = 'ol-msg';
+
+  const initials = isManager ? 'LW' : 'You';
+  const avatarClass = isManager ? 'avatar-laura' : 'avatar-you';
+  const senderName = isManager ? 'Laura Wardwell' : 'You';
+  const bodyClass = isManager ? '' : 'you-body';
+  const nameStyle = isManager ? 'color:#0f6cbd' : 'color:#107c10';
+
+  msg.innerHTML = `
+    <div class="ol-msg-top">
+      <div class="ol-avatar ${avatarClass}">${initials === 'You' ? 'YN' : initials}</div>
+      <div class="ol-msg-header">
+        <div class="ol-msg-name" style="${nameStyle}">${senderName}</div>
+        <div class="ol-msg-to">To: <span>${isManager ? 'You' : 'Laura Wardwell'}</span></div>
+      </div>
+      <div class="ol-msg-meta">
+        <div class="ol-msg-time">${getTime()}</div>
+        <div class="ol-msg-actions">
+          ${isManager ? '<button class="ol-mini-btn">Reply</button><button class="ol-mini-btn">···</button>' : ''}
+        </div>
+      </div>
+    </div>
+    <div class="ol-msg-body ${bodyClass}">${text.replace(/\n/g, '\n')}</div>
+  `;
+
+  thread.insertBefore(msg, typingRow);
+  thread.scrollTop = thread.scrollHeight;
+  saveHistory();
+}
+
+function setTyping(visible) {
+  document.getElementById('typing-row').classList.toggle('visible', visible);
+  document.getElementById('thread').scrollTop = 999999;
+}
+
+async function sendMessage() {
+  if (isWaiting) return;
+
+  const compose = document.getElementById('compose');
+  const sendBtn = document.getElementById('send-btn');
+  const status = document.getElementById('ol-status');
+  const text = compose.value.trim();
+  if (!text) return;
+
+  appendMessage(text, false);
+  conversationHistory.push({ role: 'user', content: text });
+
+  compose.value = '';
+  sendBtn.disabled = true;
+  isWaiting = true;
+  status.textContent = 'Message sent — waiting for reply…';
+  setTyping(true);
+
+  const delay = Math.min(7000 + text.length * 45, 16000);
+
+  try {
+    const response = await fetch(PROXY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages:       conversationHistory,
+        currentControl: CURRENT_CONTROL,
+        controlIndex:   CONTROL_INDEX,
+        participantId:  PARTICIPANT_ID,
+        condition:      CONDITION
+      })
+    });
+
+    const data = await response.json();
+    const reply = data.reply;
+    // Use the updated conversation log returned from the server
+    conversationHistory = data.updatedMessages || [...conversationHistory, { role: "assistant", content: reply }];
+
+    await new Promise(resolve => setTimeout(resolve, delay));
+
+    setTyping(false);
+    appendMessage(reply, true);
+    status.textContent = '';
+
+  } catch (err) {
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    setTyping(false);
+    appendMessage("I'm in a meeting — send me another message in a moment.\n\nLaura Wardwell, CPA\nAudit Manager | Career Forward Engagement Team", true);
+    status.textContent = '';
+  }
+
+  sendBtn.disabled = false;
+  isWaiting = false;
+}
+
+document.getElementById('compose').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+</script>
+</body>
+</html>
