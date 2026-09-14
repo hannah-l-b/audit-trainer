@@ -440,7 +440,8 @@ async function sendMessage() {
   status.textContent = 'Message sent — waiting for reply…';
   setTyping(true);
 
-  const delay = Math.min(7000 + text.length * 45, 16000);
+  // 30-45 second delay regardless of message length
+  const delay = 30000 + Math.floor(Math.random() * 15000);
 
   try {
     const response = await fetch(PROXY_URL, {
@@ -467,10 +468,11 @@ async function sendMessage() {
     status.textContent = '';
 
   } catch (err) {
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await new Promise(resolve => setTimeout(resolve, delay));
     setTyping(false);
-    appendMessage("I'm in a meeting — send me another message in a moment.\n\nLaura Wardwell, CPA\nAudit Manager | Career Forward Engagement Team", true);
+    appendMessage("Sorry for the delay — I had to step away briefly. Let me know if you have any other questions.\n\nLaura Wardwell, CPA\nAudit Manager | Career Forward Engagement Team", true);
     status.textContent = '';
+    console.error('Error:', err);
   }
 
   sendBtn.disabled = false;
