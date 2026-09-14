@@ -437,7 +437,7 @@ async function sendMessage() {
   compose.value = '';
   sendBtn.disabled = true;
   isWaiting = true;
-  status.textContent = 'Message sent — waiting for reply…';
+  status.textContent = 'Message sent — Laura may take a moment to respond, please wait.';
   setTyping(true);
 
   // 30-45 second delay regardless of message length
@@ -470,7 +470,7 @@ async function sendMessage() {
   } catch (err) {
     await new Promise(resolve => setTimeout(resolve, delay));
     setTyping(false);
-    appendMessage("Sorry for the delay — I had to step away briefly. Let me know if you have any other questions.\n\nLaura Wardwell, CPA\nAudit Manager | Career Forward Engagement Team", true);
+    appendMessage("Sorry for the delay — I was in the middle of something. Let me know if you have any other questions.\n\nLaura Wardwell, CPA\nAudit Manager | Career Forward Engagement Team", true);
     status.textContent = '';
     console.error('Error:', err);
   }
