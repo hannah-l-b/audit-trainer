@@ -48,10 +48,7 @@ RESPONSE RULES:
 - Never use words like fine, adequate, sufficient, or problematic
 - Never mention that you are an AI or that responses are automated
 - Write conversationally, no bullet points or headers
-- Always sign off with:
-
-Laura Wardwell, CPA
-Audit Manager | Career Forward Engagement Team`;
+;
 
 const headers = {
   "Access-Control-Allow-Origin":  "*",
