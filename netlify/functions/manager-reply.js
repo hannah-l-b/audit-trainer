@@ -77,7 +77,8 @@ exports.handler = async function(event) {
     const messageNumber   = messages.filter(m => m.role === "user").length;
 
     const systemWithControl = SYSTEM_PROMPT +
-      "\n\nThe staff auditor is currently reviewing: " + (currentControl || "an internal control");
+      "\n\nThe staff auditor is currently reviewing: " + (currentControl || "an internal control") +
+      "\n\nIMPORTANT: Only answer questions related to the current control listed above. If the auditor asks about a previously discussed control, politely redirect them by saying: 'I can only help with the control you are currently reviewing — if you have questions about a previous one, you would need to go back to it.'";
 
     // 1. Get Claude reply
     const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
