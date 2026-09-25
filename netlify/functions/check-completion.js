@@ -44,3 +44,11 @@ exports.handler = async function(event) {
     };
   }
 };
+
+const data = await response.json();
+console.log("Supabase response:", JSON.stringify(data));
+return {
+  statusCode: 200,
+  headers,
+  body: JSON.stringify({ completed: data && data.length > 0 })
+};
