@@ -1,8 +1,8 @@
 // netlify/functions/check-completion.js
 // Checks Supabase to see if a participant has completed the game
 
-const SUPABASE_URL      = process.env.SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+const SUPABASE_URL      = process.env.SUPABASE_URL_GAME;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY_GAME;
 
 const headers = {
   "Access-Control-Allow-Origin":  "*",
