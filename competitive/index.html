@@ -26,7 +26,6 @@
     --shadow:  0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06);
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   body {
     font-family: 'Inter', system-ui, sans-serif;
     background: var(--bg);
@@ -37,14 +36,12 @@
     align-items: center;
     padding: 0 16px 48px;
   }
-
   /* ── TOP STRIPE ── */
   #top-stripe {
     position: fixed; top: 0; left: 0; height: 4px;
     background: linear-gradient(90deg, var(--accent), var(--accent-light));
     width: 0%; transition: width 0.5s ease; z-index: 200;
   }
-
   /* ── START SCREEN ── */
   #start-screen {
     max-width: 560px; width: 100%;
@@ -79,10 +76,8 @@
     box-shadow: 0 4px 14px rgba(184,146,42,0.35);
   }
   .btn-primary:hover { background: var(--accent-light); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(184,146,42,0.4); }
-
   /* ── GAME SCREEN ── */
   #game-screen { display: none; max-width: 720px; width: 100%; padding-top: 56px; }
-
   .stats-bar {
     display: flex; align-items: center; justify-content: space-between;
     margin-bottom: 28px;
@@ -94,7 +89,6 @@
     box-shadow: var(--shadow);
   }
   .stat-pill strong { color: var(--text); font-weight: 700; }
-
   /* Score with animation */
   .score-wrap { position: relative; }
   .score-pop {
@@ -106,7 +100,6 @@
     0%   { opacity: 1; transform: translateX(-50%) translateY(0); }
     100% { opacity: 0; transform: translateX(-50%) translateY(-24px); }
   }
-
   .timer-wrap { position: relative; width: 68px; height: 68px; flex-shrink: 0; }
   .timer-wrap svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
   .timer-wrap circle { fill: none; stroke-width: 4; }
@@ -117,47 +110,22 @@
     align-items: center; justify-content: center;
     font-size: 1.2rem; font-weight: 800; color: var(--text);
   }
-
   .streak-wrap {
-    background: var(--panel); border: 2px solid var(--border);
+    background: var(--panel); border: 1px solid var(--border);
     border-radius: 100px; padding: 8px 20px;
     font-size: 0.875rem; color: var(--muted);
-    display: flex; align-items: center; gap: 8px;
+    display: flex; align-items: center; gap: 6px;
     box-shadow: var(--shadow);
-    transition: all 0.3s ease;
   }
-  .streak-wrap.active {
-    border-color: var(--accent);
-    background: rgba(184,146,42,0.08);
-    box-shadow: 0 0 0 3px rgba(184,146,42,0.2), var(--shadow);
-  }
-  .streak-num {
-    color: var(--accent); font-weight: 800;
-    font-size: 1.2rem; min-width: 20px; text-align: center;
-    transition: transform 0.2s ease;
-  }
-  .streak-num.pop { animation: streakPop 0.3s ease; }
-  @keyframes streakPop {
-    0%   { transform: scale(1); }
-    50%  { transform: scale(1.6); }
-    100% { transform: scale(1); }
-  }
+  .streak-num { color: var(--accent); font-weight: 800; }
   .mult-badge {
     background: var(--accent); color: #fff;
-    font-size: 0.8rem; font-weight: 800;
-    padding: 4px 10px; border-radius: 100px;
-    box-shadow: 0 2px 8px rgba(184,146,42,0.4);
-    animation: badgePulse 1.5s ease infinite;
+    font-size: 0.7rem; font-weight: 800;
+    padding: 2px 8px; border-radius: 100px;
   }
-  @keyframes badgePulse {
-    0%,100% { box-shadow: 0 2px 8px rgba(184,146,42,0.4); }
-    50%      { box-shadow: 0 2px 16px rgba(184,146,42,0.7); }
-  }
-
   /* Progress */
   .q-progress { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 20px; overflow: hidden; }
   .q-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-light)); transition: width 0.5s ease; }
-
   /* Question card */
   .q-card {
     background: var(--panel); border: 1px solid var(--border);
@@ -169,7 +137,6 @@
     text-transform: uppercase; color: var(--accent); margin-bottom: 16px;
   }
   .q-text { font-size: 1rem; line-height: 1.75; color: var(--text); white-space: pre-line; }
-
   /* Answers */
   .answers { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
   .reading-bar-wrap {
@@ -213,22 +180,18 @@
     padding: 3px 8px; line-height: 1.4;
   }
   .ans-text { font-size: 0.975rem; color: var(--text); line-height: 1.5; font-weight: 500; }
-
   .ans-btn.correct { border-color: var(--correct-border); background: var(--correct-bg); }
   .ans-btn.correct .ans-indicator { background: var(--correct-border); }
   .ans-btn.correct .ans-label { background: #DCFCE7; color: var(--correct); }
   .ans-btn.correct .ans-text { color: #166534; font-weight: 600; }
-
   .ans-btn.wrong { border-color: var(--wrong-border); background: var(--wrong-bg); }
   .ans-btn.wrong .ans-indicator { background: var(--wrong-border); }
   .ans-btn.wrong .ans-label { background: #FEE2E2; color: var(--wrong); }
   .ans-btn.wrong .ans-text { color: #991B1B; }
-
   .ans-btn.reveal { border-color: var(--correct-border); background: var(--correct-bg); }
   .ans-btn.reveal .ans-indicator { background: var(--correct-border); }
   .ans-btn.reveal .ans-label { background: #DCFCE7; color: var(--correct); }
   .ans-btn.reveal .ans-text { color: #166534; font-weight: 600; }
-
   /* Feedback */
   .feedback-row {
     min-height: 40px; display: flex; align-items: center; gap: 10px;
@@ -239,13 +202,11 @@
   .feedback-row.correct { background: var(--correct-bg); color: #166534; border: 1px solid #BBF7D0; }
   .feedback-row.wrong   { background: var(--wrong-bg); color: #991B1B; border: 1px solid #FECACA; }
   .feedback-row.empty   { background: transparent; border: none; }
-
   .streak-msg {
     min-height: 28px; font-size: 0.875rem; font-weight: 600;
     color: var(--accent); margin-bottom: 16px; padding: 0 4px;
     text-align: center;
   }
-
   /* Next button */
   .btn-next {
     display: block; width: 100%;
@@ -257,7 +218,6 @@
   }
   .btn-next:hover:not(:disabled) { background: #1e3252; transform: translateY(-1px); }
   .btn-next:disabled { opacity: 0.3; cursor: default; transform: none; }
-
   /* ── KAHOOT LEADERBOARD OVERLAY ── */
   #lb-overlay {
     display: none;
@@ -267,7 +227,6 @@
     padding: 24px;
   }
   #lb-overlay.active { display: flex; }
-
   .lb-overlay-title {
     font-size: 0.7rem; font-weight: 700; letter-spacing: 3px;
     text-transform: uppercase; color: var(--accent);
@@ -276,9 +235,7 @@
   .lb-overlay-sub {
     font-size: 0.875rem; color: #6B7F94; margin-bottom: 32px;
   }
-
   .lb-cards { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 8px; }
-
   .lb-card {
     display: flex; align-items: center; gap: 14px;
     background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
@@ -310,7 +267,6 @@
     70%  { transform: translateY(-6px); }
     100% { transform: translateY(0); }
   }
-
   .lb-rank-num {
     width: 32px; height: 32px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
@@ -320,24 +276,20 @@
   .lb-rank-num.gold   { background: #B8922A; color: #fff; }
   .lb-rank-num.silver { background: #64748B; color: #fff; }
   .lb-rank-num.bronze { background: #9A6B3A; color: #fff; }
-
   .lb-card-name { flex: 1; font-size: 0.95rem; font-weight: 600; color: #EEF2F7; }
   .lb-card.you .lb-card-name { color: var(--accent-light); }
-
   .lb-rank-arrow {
     font-size: 0.75rem; font-weight: 700;
     padding: 2px 8px; border-radius: 100px; margin-right: 4px;
   }
   .lb-rank-arrow.up   { background: rgba(22,163,74,0.2); color: #4ADE80; }
   .lb-rank-arrow.same { background: rgba(100,116,139,0.2); color: #94A3B8; }
-
   .lb-card-score {
     font-size: 1rem; font-weight: 800;
     font-variant-numeric: tabular-nums;
     color: #EEF2F7;
   }
   .lb-card.you .lb-card-score { color: var(--accent-light); }
-
   .lb-continue {
     margin-top: 28px; background: var(--accent); color: #fff;
     border: none; padding: 14px 48px; font-family: 'Inter', sans-serif;
@@ -348,7 +300,6 @@
   }
   .lb-continue.visible { opacity: 1; transform: translateY(0); transition: all 0.4s ease 0.1s; }
   .lb-continue:hover { background: var(--accent-light); transform: translateY(-2px); }
-
   /* ── END SCREEN ── */
   #end-screen {
     display: none; max-width: 560px; width: 100%;
@@ -390,7 +341,6 @@
   .final-lb-row.you .final-lb-name { color: var(--accent); font-weight: 700; }
   .final-lb-score { font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
   .final-lb-row.you .final-lb-score { color: var(--accent); }
-
   .record-note {
     background: var(--accent-bg); border: 1px solid rgba(184,146,42,0.3);
     border-radius: var(--radius); padding: 16px 20px;
@@ -402,20 +352,18 @@
 </head>
 <body>
 <div id="top-stripe"></div>
-
 <!-- START -->
 <div id="start-screen">
   <div class="brand-tag">Audit Training Exercise</div>
   <h1>Test your audit procedure knowledge</h1>
-  <p>Answer each question carefully. A <strong>live leaderboard</strong> appears after every question. Build a streak to earn bonus points.</p>
+  <p>Compete for the top score on the leaderboard! A <strong>30-second timer</strong> runs for each question. Answer accurately and build your streak to multiply your score — the higher your streak, the more points you earn!</p>
   <div class="meta-row">
-    <div class="meta-item"><span class="num">17</span><span class="lbl">Questions</span></div>
+    <div class="meta-item"><span class="num">10</span><span class="lbl">Questions</span></div>
     <div class="meta-item"><span class="num">30s</span><span class="lbl">Per question</span></div>
     <div class="meta-item"><span class="num">2×</span><span class="lbl">Max multiplier</span></div>
   </div>
   <button class="btn-primary" onclick="startGame()">Begin exercise</button>
 </div>
-
 <!-- GAME -->
 <div id="game-screen">
   <div class="stats-bar">
@@ -430,34 +378,32 @@
       </svg>
       <div class="timer-label" id="timer-num">30</div>
     </div>
-    <div class="streak-wrap">🔥 <span class="streak-num" id="streak-display">0</span><span id="mult-badge"></span></div>
+    <div class="streak-wrap">
+      Streak <span class="streak-num" id="streak-display">0</span>
+      <span id="mult-badge"></span>
+    </div>
   </div>
-
   <div class="q-progress"><div class="q-progress-fill" id="q-progress-fill" style="width:0%"></div></div>
-
+  <div class="streak-msg" id="streak-msg"></div>
   <div class="q-card">
     <div class="q-eyebrow" id="q-eyebrow">Question 1 of 17</div>
     <div class="q-text" id="q-text"></div>
   </div>
-
   <div class="reading-bar-wrap" id="reading-bar-wrap">
     <div class="reading-label" id="reading-label">Read the question — answers appear in 10s</div>
     <div class="reading-bar"><div class="reading-bar-fill" id="reading-bar-fill" style="width:0%"></div></div>
   </div>
   <div class="answers hidden" id="answers"></div>
   <div class="feedback-row empty" id="feedback"></div>
-  <div class="streak-msg" id="streak-msg"></div>
   <button class="btn-next" id="btn-next" onclick="showLeaderboard()" disabled>See leaderboard →</button>
 </div>
-
-<!-- KAHOOT LEADERBOARD OVERLAY -->
+<!-- LEADERBOARD OVERLAY -->
 <div id="lb-overlay">
   <div class="lb-overlay-title">Leaderboard</div>
   <div class="lb-overlay-sub" id="lb-overlay-sub">After question 1</div>
   <div class="lb-cards" id="lb-cards"></div>
   <button class="lb-continue" id="lb-continue" onclick="nextQuestion()">Continue →</button>
 </div>
-
 <!-- END -->
 <div id="end-screen">
   <div class="end-eyebrow">Exercise complete</div>
@@ -465,25 +411,21 @@
   <p class="end-sub">Here is how you finished.</p>
   <div class="score-display" id="final-score">0 <span>pts</span></div>
   <div class="final-lb" id="final-lb"></div>
-  <div class="record-note">📋 Please note your final score and leaderboard rank before continuing to the next part of the study.</div>
+  <div class="record-note">📋 Please note your final score before continuing to the next part of the study.</div>
   <div class="save-status" id="save-status">Saving results…</div>
 </div>
-
 <script>
 const CONDITION = "competitive";
 const TIMER_SEC = 30;
 const BASE_PTS  = 100;
 const CIRC      = 188.5;
-
 const STREAK_MESSAGES = {
   2: "Nice! Keep it going! 👍",
   3: "You're on a roll! 🔥",
   4: "Four in a row — don't break it! 🔥🔥",
-  5: "On fire! 2× multiplier activated! 🔥🔥🔥",
   6: "Incredible! 6-question streak! 🔥🔥🔥",
   7: "Unstoppable! 🔥🔥🔥"
 };
-
 const MISS_MESSAGES = [
   "Keep going — you've got this!",
   "Stay focused, next one's yours.",
@@ -491,68 +433,69 @@ const MISS_MESSAGES = [
   "You're still in it — keep pushing.",
   "Don't worry, every question is a fresh start."
 ];
-
-
-
-const fixedPlayers = [
-  {name:"A. Mitchell",score:950},
-  {name:"J. Torres",score:800},
-  {name:"C. Reynolds",score:650},
-  {name:"R. Sanders",score:450},
-  {name:"M. Liu",score:300}
+// Dynamic player profiles — scores build up question by question
+// Final scores approx over 10 questions: A.Mitchell ~1200, J.Torres ~1000, C.Reynolds ~800, R.Sanders ~550, M.Liu ~280
+// Max possible score: 1725pts (all 10 correct with full 2x streak)
+// Strong participant (~9/10 correct with streaks ~1300pts) can take 1st
+// Poor participant (~2/10 correct ~200pts) stays above M.Liu
+const playerProfiles = [
+  {name:"A. Mitchell", avgGain:120, variance:25},
+  {name:"J. Torres",   avgGain:100, variance:20},
+  {name:"C. Reynolds", avgGain:80,  variance:16},
+  {name:"R. Sanders",  avgGain:55,  variance:13},
+  {name:"M. Liu",      avgGain:28,  variance:8}
 ];
-
+// Pre-generate per-question gains at game start so leaderboard feels live
+let playerGains = [];
+function initPlayerGains(){
+  playerGains = playerProfiles.map(p => {
+    let gains = [];
+    for(let i=0;i<10;i++){
+      const g = Math.round(p.avgGain + (Math.random()*2-1)*p.variance);
+      gains.push(Math.max(5, g));
+    }
+    return {name:p.name, gains};
+  });
+}
+function getPlayerScore(playerIdx, upToQuestion){
+  let total=0;
+  for(let i=0;i<=upToQuestion;i++) total+=playerGains[playerIdx].gains[i];
+  return total;
+}
+function getCurrentStandings(participantScore, upToQuestion){
+  const players = playerGains.map((p,i)=>({
+    name:p.name,
+    score:getPlayerScore(i, upToQuestion),
+    you:false
+  }));
+  players.push({name:'You', score:participantScore, you:true});
+  players.sort((a,b)=>b.score-a.score);
+  return players;
+}
 // Questions organized in scenario groups
 // Groups are shuffled as units; questions within each group stay in order
 const questionGroups = [
-
-  // GROUP 1: Sales journal
-  [
-    {q:"You want to ensure that transactions included in the sales journal are supported by receiving documents (e.g., purchase orders, bill of lading, sales invoices).\n\nWhat type of procedure should you perform?",options:["Confirmation","Inspection","Observation","Reperformance"],correct:1},
-    {q:"You want to ensure that transactions included in the sales journal are supported by receiving documents (e.g., purchase orders, bill of lading, sales invoices).\n\nDoes this procedure need to be performed in a specific direction?",options:["No, direction does not matter for this procedure","Yes, but the direction depends on the size of the transaction being tested","Yes, you should trace from the receiving documents to the sales journal","Yes, you should vouch from the sales journal back to the receiving documents"],correct:3},
-    {q:"You want to ensure that transactions included in the sales journal are supported by receiving documents (e.g., purchase orders, bill of lading, sales invoices).\n\nWhich assertion are you primarily addressing in this scenario?",options:["Completeness","Cutoff","Existence/Occurrence","Valuation/Accuracy"],correct:2}
-  ],
-
-  // GROUP 2: Accounts receivable pledged/factored
-  [
-    {q:"While reviewing the client's accounts receivable balance, you want to determine whether any receivables have been pledged as collateral or factored to a third party.\n\nWhat procedure(s) could you perform to determine whether any receivables have been pledged as collateral or factored to a third party?",options:["Confirmation, inquiry, inspection","Confirmation, inspection, recalculation","Observation, inquiry, reperformance","Recalculation, reperformance, observation"],correct:0},
-    {q:"While reviewing the client's accounts receivable balance, you want to determine whether any receivables have been pledged as collateral or factored to a third party.\n\nWhich assertion(s) would you be addressing by performing these procedures?",options:["Completeness","Existence/Occurrence","Rights and obligations","Valuation/Accuracy"],correct:2},
-    {q:"While reviewing the client's accounts receivable balance, you want to determine whether any receivables have been pledged as collateral or factored to a third party.\n\nIf you performed confirmation, who would you contact to verify whether the receivables have been pledged or factored?",options:["Individual customer","Individual vendor","The bank or lending institution","The client's management"],correct:2}
-  ],
-
-  // GROUP 3: Depreciation
-  [
-    {q:"While reviewing the client's fixed asset schedule, you want to verify that the client has correctly calculated depreciation expense for the year using the appropriate method, useful life, and salvage value for each asset.\n\nWhat audit procedure should you perform?",options:["Inquiry","Observation","Recalculation","Reperformance"],correct:2},
-    {q:"While reviewing the client's fixed asset schedule, you want to verify that the client has correctly calculated depreciation expense for the year using the appropriate method, useful life, and salvage value for each asset.\n\nWhich assertion are you primarily addressing in this scenario?",options:["Completeness","Cutoff","Existence/Occurrence","Valuation/Accuracy"],correct:3}
-  ],
-
-  // GROUP 4: Revenue recognition
-  [
-    {q:"You are auditing your client's revenue balance and notice that the company has several long-term contracts with customers. You want to understand how management applies its revenue recognition policy to these contracts in practice, including how performance obligations are identified and when revenue is recorded.\n\nWhat procedure should you perform?",options:["Confirmation","Inquiry","Inspection","Observation"],correct:1},
-    {q:"You are auditing your client's revenue balance and notice that the company has several long-term contracts with customers. You want to understand how management applies its revenue recognition policy to these contracts in practice, including how performance obligations are identified and when revenue is recorded.\n\nWhich assertion(s) are you primarily addressing in this scenario?",options:["Completeness, cutoff","Existence/occurrence, completeness, valuation/accuracy","Existence/occurrence, rights and obligations","Presentation and disclosure, valuation/accuracy"],correct:3}
-  ],
-
-  // GROUP 5: Revenue pattern / cutoff
-  [
-    {q:"You notice that your client's revenue in the final month of the fiscal year is significantly higher than the same period in prior years, while revenue in the first month of the following year is unusually low.\n\nWhat procedure did the auditor perform to identify this pattern?",options:["Analytical procedures","Confirmation","Recalculation","Reperformance"],correct:0},
-    {q:"You notice that your client's revenue in the final month of the fiscal year is significantly higher than the same period in prior years, while revenue in the first month of the following year is unusually low.\n\nWhat assertion are you primarily concerned about in this scenario?",options:["Completeness, valuation/accuracy","Cutoff, existence/occurrence","Cutoff, valuation/accuracy","Existence/occurrence, completeness"],correct:1}
-  ],
-
-  // GROUP 6: Electronics counting control
-  [
-    {q:"A manufacturing company has an internal control policy stating that every box of electronics must be counted by two authorized staff members to prevent errors and fraud.\n\nWhat procedures would most directly allow you to determine whether the company has been following this policy?",options:["Confirmation, inquiry, recalculation","Confirmation, recalculation, analytical procedures","Inquiry, analytical procedures, recalculation","Observation, reperformance, inspection"],correct:3},
-    {q:"A manufacturing company has an internal control policy stating that every box of electronics must be counted by two authorized staff members to prevent errors and fraud.\n\nWhat assertion are you primarily addressing in this scenario?",options:["Completeness, presentation and disclosure","Cutoff, valuation/accuracy","Existence/occurrence, completeness","Existence/occurrence, valuation/accuracy"],correct:2}
-  ],
-
-  // GROUP 7: Subsidiary ledger
-  [
-    {q:"During planning, you discover that your client has experienced recurring errors in their subsidiary ledger, including mispostings, omissions, and duplicate entries.\n\nWhat procedure should you perform to verify that the subsidiary ledger balances are accurately reflected in the general ledger?",options:["Confirmation","Inspection","Recalculation","Reperformance"],correct:2},
-    {q:"During planning, you discover that your client has experienced recurring errors in their subsidiary ledger, including mispostings, omissions, and duplicate entries.\n\nWhich of the following best describes what you would specifically do when performing this procedure?",options:["Foot the individual customer balances in the subsidiary ledger and agree the total to the control account in the general ledger","Observe client personnel as they process and record transactions into the subsidiary ledger","Reconcile the subsidiary ledger balances to third-party confirmations received from customers","Trace individual transactions from the subsidiary ledger back to the original source documents"],correct:0},
-    {q:"During planning, you discover that your client has experienced recurring errors in their subsidiary ledger, including mispostings, omissions, and duplicate entries.\n\nWhich assertion(s) are you primarily addressing by performing this procedure?",options:["Completeness, cutoff","Completeness, valuation/accuracy","Existence/occurrence, rights and obligations","Valuation/accuracy"],correct:3}
-  ]
-
+  // GIMME 1 — Auditing standards
+  [{q:"Which organization establishes auditing standards for audits of public companies in the United States?",options:["AICPA","FASB","PCAOB","SEC"],correct:2}],
+  // GIMME 2 — Accounting standards
+  [{q:"Which set of accounting standards is required for financial reporting by companies in the United States?",options:["GAAP","GAAS","IFRS","ISA"],correct:0}],
+  // GIMME 3 — Purpose of audit
+  [{q:"What is the primary purpose of a financial statement audit?",options:["To detect all fraud within a company","To guarantee the accuracy of all financial statement figures","To prepare financial statements on behalf of the client","To provide reasonable assurance that financial statements are free of material misstatement"],correct:3}],
+  // HARD 1 — Sales journal: inspection
+  [{q:"You want to ensure that transactions included in the sales journal are supported by receiving documents (e.g., purchase orders, bill of lading, sales invoices).\n\nWhat type of procedure should you perform?",options:["Confirmation","Inspection","Observation","Reperformance"],correct:1}],
+  // HARD 2 — AR pledged: rights and obligations
+  [{q:"While reviewing the client's accounts receivable balance, you want to determine whether any receivables have been pledged as collateral or factored to a third party.\n\nWhich assertion(s) would you be addressing by performing these procedures?",options:["Completeness","Existence/Occurrence","Rights and obligations","Valuation/Accuracy"],correct:2}],
+  // HARD 3 — Depreciation: recalculation
+  [{q:"While reviewing the client's fixed asset schedule, you want to verify that the client has correctly calculated depreciation expense for the year using the appropriate method, useful life, and salvage value for each asset.\n\nWhat audit procedure should you perform?",options:["Inquiry","Observation","Recalculation","Reperformance"],correct:2}],
+  // HARD 4 — Revenue recognition: inquiry
+  [{q:"You are auditing your client's revenue balance and notice that the company has several long-term contracts with customers. You want to understand how management applies its revenue recognition policy to these contracts in practice, including how performance obligations are identified and when revenue is recorded.\n\nWhat procedure should you perform?",options:["Confirmation","Inquiry","Inspection","Observation"],correct:1}],
+  // HARD 5 — Revenue pattern: cutoff assertion
+  [{q:"You notice that your client's revenue in the final month of the fiscal year is significantly higher than the same period in prior years, while revenue in the first month of the following year is unusually low.\n\nWhat assertion are you primarily concerned about in this scenario?",options:["Completeness, valuation/accuracy","Cutoff, existence/occurrence","Cutoff, valuation/accuracy","Existence/occurrence, completeness"],correct:1}],
+  // HARD 6 — Electronics counting: observation/reperformance/inspection
+  [{q:"A manufacturing company has an internal control policy stating that every box of electronics must be counted by two authorized staff members to prevent errors and fraud.\n\nWhat procedures would most directly allow you to determine whether the company has been following this policy?",options:["Confirmation, inquiry, recalculation","Confirmation, recalculation, analytical procedures","Inquiry, analytical procedures, recalculation","Observation, reperformance, inspection"],correct:3}],
+  // HARD 7 — Subsidiary ledger: foot the balances
+  [{q:"During planning, you discover that your client has experienced recurring errors in their subsidiary ledger, including mispostings, omissions, and duplicate entries.\n\nWhich of the following best describes what you would specifically do when performing a recalculation procedure?",options:["Foot the individual customer balances in the subsidiary ledger and agree the total to the control account in the general ledger","Observe client personnel as they process and record transactions into the subsidiary ledger","Reconcile the subsidiary ledger balances to third-party confirmations received from customers","Trace individual transactions from the subsidiary ledger back to the original source documents"],correct:0}]
 ];
-
 questionGroups.forEach((group,gi)=>{
   group.forEach((q,qi)=>{
     q.groupIndex=gi;
@@ -560,7 +503,6 @@ questionGroups.forEach((group,gi)=>{
     q.originalIndex=gi*10+qi;
   });
 });
-
 function shuffle(arr){
   for(let i=arr.length-1;i>0;i--){
     const j=Math.floor(Math.random()*(i+1));
@@ -568,29 +510,21 @@ function shuffle(arr){
   }
   return arr;
 }
-
 let questions=[];
 function buildQuestions(){
   shuffle(questionGroups);
   questions=questionGroups.flat();
   questionOrder=questions.map(q=>q.originalIndex);
 }
-
 const LABELS = ['A','B','C','D'];
-
-
 let cQ=0, score=0, streak=0, maxStreak=0, correctCount=0, timedOutCount=0;
 let answered=false, timerInt=null, timeLeft=TIMER_SEC, readInt=null, readTimeLeft=10, qStart=null, gameStart=null, qLog=[], questionOrder=[];
 let prevRank = null;
-
 function mult(s){ return s>=5?2:s>=3?1.5:s>=2?1.25:1; }
-
 function getRank(sc){
-  const all = [...fixedPlayers, {name:'You', score:sc}];
-  all.sort((a,b)=>b.score-a.score);
-  return all.findIndex(p=>p.name==='You')+1;
+  const all = getCurrentStandings(sc, Math.min(cQ, 9));
+  return all.findIndex(p=>p.you)+1;
 }
-
 function startGame(){
   buildQuestions();
   gameStart=Date.now();
@@ -598,15 +532,13 @@ function startGame(){
   document.getElementById('game-screen').style.display='block';
   loadQ();
 }
-
 function loadQ(){
   answered=false; timeLeft=TIMER_SEC; qStart=Date.now();
   document.getElementById('feedback').textContent='';
   document.getElementById('feedback').className='feedback-row empty';
   document.getElementById('streak-msg').textContent='';
   document.getElementById('btn-next').disabled=true;
-  document.getElementById('btn-next').textContent='See leaderboard →';
-
+  document.getElementById('btn-next').textContent='Continue →';
   const q=questions[cQ];
   document.getElementById('q-eyebrow').textContent=`Question ${cQ+1} of ${questions.length}`;
   document.getElementById('q-text').textContent=q.q;
@@ -614,7 +546,6 @@ function loadQ(){
   document.getElementById('top-stripe').style.width=`${(cQ/questions.length)*100}%`;
   document.getElementById('score-display').textContent=score;
   updateStreak();
-
   const c=document.getElementById('answers');
   c.innerHTML='';
   q.options.forEach((opt,i)=>{
@@ -626,22 +557,11 @@ function loadQ(){
   });
   startReadingPhase();
 }
-
 function updateStreak(){
-  const el=document.getElementById('streak-display');
-  const wrap=document.querySelector('.streak-wrap');
-  el.textContent=streak;
-  // Pop animation on streak increase
-  el.classList.remove('pop');
-  void el.offsetWidth; // reflow
-  if(streak>0) el.classList.add('pop');
-  // Active glow when on a streak
-  if(streak>=2) wrap.classList.add('active');
-  else wrap.classList.remove('active');
+  document.getElementById('streak-display').textContent=streak;
   const m=mult(streak);
   document.getElementById('mult-badge').innerHTML=m>1?`<span class="mult-badge">${m}×</span>`:'';
 }
-
 function startReadingPhase(){
   // Show reading bar, hide answers
   const wrap=document.getElementById('reading-bar-wrap');
@@ -667,7 +587,6 @@ function startReadingPhase(){
     }
   },1000);
 }
-
 function startTimer(){
   updateTimerUI(TIMER_SEC);
   clearInterval(timerInt);
@@ -677,14 +596,12 @@ function startTimer(){
     if(timeLeft<=0){ clearInterval(timerInt); if(!answered) expire(); }
   },1000);
 }
-
 function updateTimerUI(t){
   document.getElementById('timer-num').textContent=t;
   const arc=document.getElementById('timer-arc');
   arc.style.strokeDashoffset=CIRC*(1-t/TIMER_SEC);
   arc.style.stroke=t<=10?'#DC2626':t<=20?'#D97706':'#B8922A';
 }
-
 function animateScore(pts){
   const wrap=document.querySelector('.score-wrap');
   const pop=document.createElement('span');
@@ -693,7 +610,6 @@ function animateScore(pts){
   wrap.appendChild(pop);
   setTimeout(()=>pop.remove(), 1000);
 }
-
 function selectAns(idx){
   if(answered) return;
   answered=true;
@@ -704,20 +620,15 @@ function selectAns(idx){
   const btns=document.querySelectorAll('.ans-btn');
   btns.forEach(b=>b.disabled=true);
   const fb=document.getElementById('feedback');
-  const sm=document.getElementById('streak-msg');
   let ok=false;
-
   if(idx===q.correct){
     btns[idx].classList.add('correct');
     const m=mult(streak);
     const pts=Math.round(BASE_PTS*m);
     score+=pts; streak++; maxStreak=Math.max(maxStreak,streak); correctCount++; ok=true;
-    fb.textContent=`✓  Correct! +${pts} points`;
+    fb.textContent='✓  Correct!';
     fb.className='feedback-row correct';
-    animateScore(pts);
     document.getElementById('score-display').textContent=score;
-    const msg=STREAK_MESSAGES[Math.min(streak,7)]||`${streak}-question streak! 🔥🔥🔥`;
-    sm.textContent=streak>=2?msg:'';
   } else {
     btns[idx].classList.add('wrong');
     btns[q.correct].classList.add('reveal');
@@ -725,14 +636,11 @@ function selectAns(idx){
     const miss=MISS_MESSAGES[Math.floor(Math.random()*MISS_MESSAGES.length)];
     fb.textContent=`✗  Incorrect — ${miss}`;
     fb.className='feedback-row wrong';
-    sm.textContent='';
   }
-
   qLog.push({answerChosen:LABELS[idx],wasCorrect:ok,timeTaken:taken,timedOut:false});
   updateStreak();
   document.getElementById('btn-next').disabled=false;
 }
-
 function expire(){
   answered=true;
   clearInterval(readInt);
@@ -749,38 +657,30 @@ function expire(){
   updateStreak();
   document.getElementById('btn-next').disabled=false;
 }
-
 function showLeaderboard(){
   const overlay=document.getElementById('lb-overlay');
   const cards=document.getElementById('lb-cards');
   const cont=document.getElementById('lb-continue');
   const sub=document.getElementById('lb-overlay-sub');
-
   overlay.classList.add('active');
   cont.classList.remove('visible');
   cards.innerHTML='';
-  sub.textContent=`After question ${cQ+1}`;
-
-  const maxS=Math.max(...fixedPlayers.map(p=>p.score),score,1);
-  const all=[...fixedPlayers.map(p=>({...p})),{name:'You',score,you:true}];
-  all.sort((a,b)=>b.score-a.score);
-  const newRank=all.findIndex(p=>p.you)+1;
-
+  sub.textContent=`After question ${cQ+1} of ${questions.length}`;
+  const all = getCurrentStandings(score, cQ);
+  const newRank = all.findIndex(p=>p.you)+1;
   all.forEach((p,i)=>{
     const card=document.createElement('div');
     card.className=`lb-card${p.you?' you':''}`;
-
     let rankClass='';
     if(i===0) rankClass='gold';
     else if(i===1) rankClass='silver';
     else if(i===2) rankClass='bronze';
-
     let arrowHTML='';
     if(p.you && prevRank!==null){
       if(newRank<prevRank) arrowHTML=`<span class="lb-rank-arrow up">↑ ${prevRank-newRank}</span>`;
+      else if(newRank>prevRank) arrowHTML=`<span class="lb-rank-arrow same">↓ ${newRank-prevRank}</span>`;
       else arrowHTML=`<span class="lb-rank-arrow same">—</span>`;
     }
-
     card.innerHTML=`
       <div class="lb-rank-num ${rankClass}">${i+1}</div>
       <div class="lb-card-name">${p.name}</div>
@@ -788,7 +688,6 @@ function showLeaderboard(){
       <div class="lb-card-score">${p.score}</div>
     `;
     cards.appendChild(card);
-
     setTimeout(()=>{
       card.classList.add('animate-in');
       if(p.you){
@@ -799,29 +698,22 @@ function showLeaderboard(){
       }
     }, i*120);
   });
-
   prevRank=newRank;
-
   setTimeout(()=>cont.classList.add('visible'), all.length*120+800);
 }
-
 function nextQuestion(){
   document.getElementById('lb-overlay').classList.remove('active');
   cQ++;
   if(cQ>=questions.length) endGame();
   else loadQ();
 }
-
 function endGame(){
   document.getElementById('game-screen').style.display='none';
   document.getElementById('end-screen').style.display='block';
   document.getElementById('final-score').innerHTML=`${score} <span>pts</span>`;
   document.getElementById('top-stripe').style.width='100%';
-
-  const all=[...fixedPlayers.map(p=>({...p})),{name:'You',score,you:true}];
-  all.sort((a,b)=>b.score-a.score);
+  const all=getCurrentStandings(score, 9);
   const rank=all.findIndex(p=>p.you)+1;
-
   const flb=document.getElementById('final-lb');
   let html=`<div class="final-lb-header"><span>Final Standings</span><span>Score</span></div>`;
   all.forEach((p,i)=>{
@@ -833,7 +725,6 @@ function endGame(){
   });
   html+=`<div style="padding:12px 20px;font-size:0.8rem;color:var(--muted);border-top:1px solid var(--border)">Your rank: <strong style="color:var(--accent)">#${rank} of ${all.length}</strong></div>`;
   flb.innerHTML=html;
-
   const payload={condition:CONDITION,participantId:new URLSearchParams(window.location.search).get('pid')||'N/A',finalScore:score,correctAnswers:correctCount,totalQuestions:questions.length,accuracy:Math.round((correctCount/questions.length)*100),maxStreak,totalTime:Math.round((Date.now()-gameStart)/1000),timedOut:timedOutCount,questionOrder:questionOrder,questions:qLog};
   fetch('/.netlify/functions/save-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(r=>r.json())
