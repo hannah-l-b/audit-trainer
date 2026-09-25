@@ -25,8 +25,8 @@
 // 6. Copy "Project URL" and paste below as SUPABASE_URL
 // 7. Copy "anon public" key and paste below as SUPABASE_ANON_KEY
 
-const SUPABASE_URL      = "https://drxlobcuciwbidkolykm.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRyeGxvYmN1Y2l3Ymlka29seWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczMzYyNTMsImV4cCI6MjEwMjkxMjI1M30.01jjc-xZcaCf-fmuPhj9vVKNkjNefNSxoMDOaDd4X1w";
+const SUPABASE_URL      = process.env.SUPABASE_URL_GAME;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY_GAME;
 
 const headers = {
   "Access-Control-Allow-Origin":  "*",
