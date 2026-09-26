@@ -553,6 +553,7 @@ function getRank(sc){
 }
 function startGame(){
   buildQuestions();
+  initTeamGains();
   gameStart=Date.now();
   document.getElementById('start-screen').style.display='none';
   document.getElementById('game-screen').style.display='block';
