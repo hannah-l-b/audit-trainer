@@ -400,7 +400,7 @@
       </svg>
       <div class="timer-label" id="timer-num">30</div>
     </div>
-    <div class="streak-wrap">🔥 <span class="streak-num" id="streak-display">0</span><span id="mult-badge"></span></div>
+    <div class="streak-wrap" id="streak-wrap">🔥 <span class="streak-num" id="streak-display">0</span><span id="mult-badge"></span></div>
   </div>
   <div class="q-progress"><div class="q-progress-fill" id="q-progress-fill" style="width:0%"></div></div>
   <div class="q-card">
@@ -439,19 +439,22 @@ const TIMER_SEC = 30;
 const BASE_PTS  = 100;
 const CIRC      = 188.5;
 const STREAK_MESSAGES = {
-  2: "Nice! Keep it going! 👍",
-  3: "You're on a roll! 🔥",
-  4: "Four in a row — don't break it! 🔥🔥",
-  5: "On fire! 2× multiplier activated! 🔥🔥🔥",
-  6: "Incredible! 6-question streak! 🔥🔥🔥",
-  7: "Unstoppable! 🔥🔥🔥"
+  2: {msg:"Nice! 2 in a row — 1.5× multiplier active! 💪", cls:""},
+  3: {msg:"3-question streak! 2× multiplier — you're on a roll! 🔥", cls:""},
+  4: {msg:"Four in a row! 2× multiplier — don't break it! 🔥🔥", cls:""},
+  5: {msg:"ON FIRE! 2.5× multiplier activated! 🔥🔥🔥", cls:"fire"},
+  6: {msg:"INCREDIBLE! 2.5× — your team is climbing! 🔥🔥🔥", cls:"fire"},
+  7: {msg:"UNSTOPPABLE! 3× MULTIPLIER! 🔥🔥🔥🔥", cls:"fire"},
+  8: {msg:"LEGENDARY! 3× — your team is dominating! 🔥🔥🔥🔥", cls:"fire"},
+  9: {msg:"UNREAL! 3.5× MULTIPLIER — PERFECT STREAK! 🏆🔥🔥🔥🔥", cls:"fire"},
+  10:{msg:"FLAWLESS! 3.5× — ALL 10 CORRECT! YOUR TEAM WINS! 🏆🔥🔥🔥🔥", cls:"fire"}
 };
 const MISS_MESSAGES = [
-  "Keep going — you've got this!",
-  "Stay focused, next one's yours.",
-  "Shake it off and move on.",
-  "You're still in it — keep pushing.",
-  "Don't worry, every question is a fresh start."
+  "Streak broken! Refocus — your team is counting on you! 💪",
+  "Oops! Don't let that knock your team off the leaderboard! 😤",
+  "Streak gone — but you can still climb back up for your team! 🚀",
+  "That one hurt! Stay sharp for the next one! ⚡",
+  "Shake it off — every question is a fresh chance! 💥"
 ];
 // Partner's pre-banked score added to participant's score for combined total
 const MANAGER_SCORE = 1150;
@@ -481,10 +484,12 @@ function initTeamGains(){
     let gains=[];
     let pStreak=0;
     for(let i=0;i<10;i++){
-      // Simulate two players combined per question
       let qScore=0;
       for(let member=0;member<2;member++){
-        const correct=Math.random()<teamAccuracy[idx];
+        // Team 1 (idx=0) has a 20% chance of a surprise mistake
+        const mistakeChance=idx===0?0.20:0;
+        const hasMistake=Math.random()<mistakeChance;
+        const correct=!hasMistake&&(Math.random()<teamAccuracy[idx]);
         if(correct){ qScore+=Math.round(BASE_PTS*mult(pStreak)); pStreak++; }
         else { pStreak=0; }
       }
@@ -593,7 +598,7 @@ function loadQ(){
   answered=false; timeLeft=TIMER_SEC; qStart=Date.now();
   document.getElementById('feedback').textContent='';
   document.getElementById('feedback').className='feedback-row empty';
-  document.getElementById('streak-msg').textContent='';
+  const _sm=document.getElementById('streak-msg'); _sm.textContent=''; _sm.className='streak-msg';
   document.getElementById('btn-next').disabled=true;
   document.getElementById('btn-next').textContent='See leaderboard →';
   const q=questions[cQ];
@@ -602,7 +607,7 @@ function loadQ(){
   document.getElementById('q-progress-fill').style.width=`${(cQ/questions.length)*100}%`;
   document.getElementById('top-stripe').style.width=`${(cQ/questions.length)*100}%`;
   document.getElementById('score-display').textContent=MANAGER_SCORE+score;
-  updateStreak();
+  updateStreak(false);
   const c=document.getElementById('answers');
   c.innerHTML='';
   q.options.forEach((opt,i)=>{
@@ -668,13 +673,21 @@ function updateTimerUI(t){
   arc.style.strokeDashoffset=CIRC*(1-t/TIMER_SEC);
   arc.style.stroke=t<=10?'#DC2626':t<=20?'#D97706':'#B8922A';
 }
-function animateScore(pts){
+function animateScore(pts, multiplied){
   const wrap=document.querySelector('.score-wrap');
   const pop=document.createElement('span');
-  pop.className='score-pop';
+  pop.className=`score-pop${multiplied?' multiplied':''}`;
   pop.textContent=`+${pts}`;
   wrap.appendChild(pop);
   setTimeout(()=>pop.remove(), 1000);
+}
+function setStreakMsg(text, cls){
+  const smEl=document.getElementById('streak-msg');
+  smEl.style.animation='none';
+  smEl.getBoundingClientRect();
+  smEl.style.animation='';
+  smEl.textContent=text;
+  smEl.className='streak-msg'+(cls?' '+cls:'');
 }
 function selectAns(idx){
   if(answered) return;
@@ -686,30 +699,33 @@ function selectAns(idx){
   const btns=document.querySelectorAll('.ans-btn');
   btns.forEach(b=>b.disabled=true);
   const fb=document.getElementById('feedback');
-  const sm=document.getElementById('streak-msg');
   let ok=false;
   if(idx===q.correct){
     btns[idx].classList.add('correct');
     const m=mult(streak);
     const pts=Math.round(BASE_PTS*m);
     score+=pts; streak++; maxStreak=Math.max(maxStreak,streak); correctCount++; ok=true;
-    fb.textContent=`✓  Correct! +${pts} points`;
+    if(m>1){
+      fb.innerHTML=`✓ &nbsp;Correct! &nbsp;<strong>+${pts} pts</strong> &nbsp;<span style="color:var(--accent);font-size:0.85rem">(${m}× streak bonus!)</span>`;
+    } else {
+      fb.innerHTML=`✓ &nbsp;Correct! &nbsp;<strong>+${pts} pts</strong>`;
+    }
     fb.className='feedback-row correct';
-    animateScore(pts);
+    animateScore(pts, m>1);
     document.getElementById('score-display').textContent=MANAGER_SCORE+score;
-    const msg=STREAK_MESSAGES[Math.min(streak,7)]||`${streak}-question streak! 🔥🔥🔥`;
-    sm.textContent=streak>=2?msg:'';
+    const smData=STREAK_MESSAGES[streak];
+    if(smData){ setStreakMsg(smData.msg, smData.cls||''); } else { setStreakMsg('',''); }
   } else {
     btns[idx].classList.add('wrong');
     btns[q.correct].classList.add('reveal');
-    streak=0;
-    const miss=MISS_MESSAGES[Math.floor(Math.random()*MISS_MESSAGES.length)];
-    fb.textContent=`✗  Incorrect — ${miss}`;
+    const hadStreak=streak; streak=0;
     fb.className='feedback-row wrong';
-    sm.textContent='';
+    if(hadStreak>=2){ fb.innerHTML=`✗ &nbsp;Incorrect! &nbsp;<span style="font-size:0.85rem">Streak of ${hadStreak} broken!</span>`; }
+    else { fb.innerHTML='✗ &nbsp;Incorrect.'; }
+    setStreakMsg(MISS_MESSAGES[Math.floor(Math.random()*MISS_MESSAGES.length)],'wrong');
   }
   qLog.push({answerChosen:LABELS[idx],wasCorrect:ok,timeTaken:taken,timedOut:false});
-  updateStreak();
+  updateStreak(ok);
   document.getElementById('btn-next').disabled=false;
 }
 function expire(){
@@ -719,13 +735,15 @@ function expire(){
   const btns=document.querySelectorAll('.ans-btn');
   btns.forEach(b=>b.disabled=true);
   btns[q.correct].classList.add('reveal');
+  const hadStreak=streak;
   streak=0; timedOutCount++;
-  const miss=MISS_MESSAGES[Math.floor(Math.random()*MISS_MESSAGES.length)];
-  document.getElementById('feedback').textContent=`⏰  Time's up — ${miss}`;
-  document.getElementById('feedback').className='feedback-row wrong';
-  document.getElementById('streak-msg').textContent='';
+  const fb=document.getElementById('feedback');
+  fb.className='feedback-row wrong';
+  if(hadStreak>=2){ fb.innerHTML=`⏰ &nbsp;Time's up! &nbsp;<span style="font-size:0.85rem">Streak of ${hadStreak} broken!</span>`; }
+  else { fb.innerHTML="⏰ &nbsp;Time's up!"; }
+  setStreakMsg(MISS_MESSAGES[Math.floor(Math.random()*MISS_MESSAGES.length)],'wrong');
   qLog.push({answerChosen:'none',wasCorrect:false,timeTaken:TIMER_SEC,timedOut:true});
-  updateStreak();
+  updateStreak(false);
   document.getElementById('btn-next').disabled=false;
 }
 function showLeaderboard(){
@@ -800,6 +818,14 @@ function showLeaderboard(){
     });
   }
 
+    setTimeout(()=>{
+    const youCard=cardsEl.querySelector('.lb-card.you');
+    if(youCard&&prevRank!==null){
+      if(newRank<prevRank) youCard.classList.add('rise');
+      else if(newRank===prevRank) youCard.classList.add('shake');
+      setTimeout(()=>{youCard.classList.remove('rise','shake');},600);
+    }
+  },400);
   prevRank=newRank;
   setTimeout(()=>cont.classList.add('visible'), 1400);
 }
