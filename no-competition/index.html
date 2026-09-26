@@ -190,7 +190,7 @@ let questionOrder=[];
 function buildQuestions(){shuffle(questionGroups);questions=questionGroups.flat();questionOrder=questions.map(q=>q.originalIndex);}
 const LABELS=['A','B','C','D'];
 let cQ=0,score=0,streak=0,maxStreak=0,correctCount=0,timedOutCount=0;
-let answered=false,timerInt=null,readInt=null,timeLeft=TIMER_SEC,readTimeLeft=10;
+let answered=false,timerInt=null,readInt=null,timeLeft=TIMER_SEC,readTimeLeft=5;
 let qStart=null,gameStart=null,qLog=[];
 function mult(s){return s>=5?2:s>=3?1.5:s>=2?1.25:1;}
 function startGame(){buildQuestions();gameStart=Date.now();document.getElementById('start-screen').style.display='none';document.getElementById('game-screen').style.display='block';loadQ();}
@@ -225,14 +225,14 @@ function startReadingPhase(){
   wrap.classList.add('visible');
   answers.classList.add('hidden');
   fill.style.width='0%';
-  readTimeLeft=10;
+  readTimeLeft=5;
   clearInterval(readInt);
   readInt=setInterval(()=>{
     readTimeLeft--;
-    const pct=((10-readTimeLeft)/10)*100;
+    const pct=((5-readTimeLeft)/5)*100;
     fill.style.width=pct+'%';
     if(readTimeLeft<=3)label.textContent=`Answers appear in ${readTimeLeft}s…`;
-    if(readTimeLeft<=0){clearInterval(readInt);wrap.classList.remove('visible');answers.classList.remove('hidden');label.textContent='Read the question — answers appear in 10s';startTimer();}
+    if(readTimeLeft<=0){clearInterval(readInt);wrap.classList.remove('visible');answers.classList.remove('hidden');label.textContent='Read the question — answers appear in 5s';startTimer();}
   },1000);
 }
 function startTimer(){
