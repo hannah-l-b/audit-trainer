@@ -110,19 +110,90 @@
     align-items: center; justify-content: center;
     font-size: 1.2rem; font-weight: 800; color: var(--text);
   }
+  /* ── PROMINENT STREAK DISPLAY ── */
   .streak-wrap {
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: 100px; padding: 8px 20px;
-    font-size: 0.875rem; color: var(--muted);
-    display: flex; align-items: center; gap: 6px;
-    box-shadow: var(--shadow);
+    background: var(--panel); border: 2px solid var(--border);
+    border-radius: 12px; padding: 10px 18px;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    box-shadow: var(--shadow); min-width: 100px;
+    transition: border-color 0.3s, box-shadow 0.3s;
   }
-  .streak-num { color: var(--accent); font-weight: 800; }
+  .streak-wrap.hot {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(184,146,42,0.25), var(--shadow);
+  }
+  .streak-wrap.on-fire {
+    border-color: #DC2626;
+    box-shadow: 0 0 0 3px rgba(220,38,38,0.3), var(--shadow);
+    animation: fireGlow 1.2s ease-in-out infinite alternate;
+  }
+  @keyframes fireGlow {
+    from { box-shadow: 0 0 0 3px rgba(220,38,38,0.2), var(--shadow); }
+    to   { box-shadow: 0 0 0 6px rgba(220,38,38,0.4), var(--shadow); }
+  }
+  .streak-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+  .streak-num {
+    font-size: 1.6rem; font-weight: 900; color: var(--accent); line-height: 1;
+    transition: color 0.3s;
+  }
+  .streak-num.hot   { color: #D97706; }
+  .streak-num.fire  { color: #DC2626; }
+  .streak-num.bump  { animation: bump 0.3s ease; }
+  @keyframes bump {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.4); }
+    100% { transform: scale(1); }
+  }
   .mult-badge {
+    font-size: 0.75rem; font-weight: 800;
+    padding: 3px 10px; border-radius: 100px;
     background: var(--accent); color: #fff;
-    font-size: 0.7rem; font-weight: 800;
-    padding: 2px 8px; border-radius: 100px;
+    animation: badgePop 0.35s ease;
   }
+  .mult-badge.fire { background: #DC2626; }
+  @keyframes badgePop {
+    0%   { transform: scale(0.7); opacity: 0; }
+    70%  { transform: scale(1.15); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* ── STREAK MESSAGE ── */
+  .streak-msg {
+    min-height: 44px; text-align: center;
+    font-size: 1.05rem; font-weight: 800;
+    color: var(--accent); margin-bottom: 12px; padding: 0 4px;
+    display: flex; align-items: center; justify-content: center;
+    animation: msgFadeIn 0.4s ease;
+  }
+  @keyframes msgFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .streak-msg.fire  { color: #DC2626; font-size: 1.15rem; }
+  .streak-msg.wrong { color: var(--wrong); font-size: 0.95rem; }
+
+  /* ── SCORE POP ── */
+  .score-pop {
+    position: absolute; top: -36px; left: 50%; transform: translateX(-50%);
+    font-size: 1rem; font-weight: 900; color: var(--correct);
+    animation: popUp 1.2s ease forwards; pointer-events: none; white-space: nowrap;
+  }
+  .score-pop.multiplied { color: var(--accent); font-size: 1.2rem; }
+  @keyframes popUp {
+    0%   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-32px); }
+  }
+
+  /* ── FEEDBACK ROW ── */
+  .feedback-row {
+    min-height: 48px; display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; font-weight: 700; margin-bottom: 8px;
+    padding: 12px 16px; border-radius: 10px; transition: all 0.2s;
+    text-align: center;
+  }
+  .feedback-row.correct { background: var(--correct-bg); color: #166534; border: 1px solid #BBF7D0; }
+  .feedback-row.wrong   { background: var(--wrong-bg);   color: #991B1B; border: 1px solid #FECACA; }
+  .feedback-row.empty   { background: transparent; border: none; }
   /* Progress */
   .q-progress { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 20px; overflow: hidden; }
   .q-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-light)); transition: width 0.5s ease; }
@@ -378,8 +449,9 @@
       </svg>
       <div class="timer-label" id="timer-num">30</div>
     </div>
-    <div class="streak-wrap">
-      Streak <span class="streak-num" id="streak-display">0</span>
+    <div class="streak-wrap" id="streak-wrap">
+      <span class="streak-label">🔥 Streak</span>
+      <span class="streak-num" id="streak-display">0</span>
       <span id="mult-badge"></span>
     </div>
   </div>
@@ -446,13 +518,25 @@ const playerProfiles = [
   {name:"M. Liu",      avgGain:28,  variance:8}
 ];
 // Pre-generate per-question gains at game start so leaderboard feels live
+// Accuracy rates per player — used to simulate realistic scores using actual game mechanics
+// Accuracy rates — calibrated for extended multiplier system
+const playerAccuracy = [0.88, 0.76, 0.65, 0.50, 0.32];
+
 let playerGains = [];
 function initPlayerGains(){
-  playerGains = playerProfiles.map(p => {
+  playerGains = playerProfiles.map((p, idx) => {
     let gains = [];
+    let pStreak = 0;
     for(let i=0;i<10;i++){
-      const g = Math.round(p.avgGain + (Math.random()*2-1)*p.variance);
-      gains.push(Math.max(5, g));
+      const correct = Math.random() < playerAccuracy[idx];
+      if(correct){
+        const m = mult(pStreak);
+        gains.push(Math.round(BASE_PTS * m));
+        pStreak++;
+      } else {
+        gains.push(0);
+        pStreak = 0;
+      }
     }
     return {name:p.name, gains};
   });
@@ -520,7 +604,14 @@ const LABELS = ['A','B','C','D'];
 let cQ=0, score=0, streak=0, maxStreak=0, correctCount=0, timedOutCount=0;
 let answered=false, timerInt=null, timeLeft=TIMER_SEC, readInt=null, readTimeLeft=10, qStart=null, gameStart=null, qLog=[], questionOrder=[];
 let prevRank = null;
-function mult(s){ return s>=5?2:s>=3?1.5:s>=2?1.25:1; }
+function mult(s){
+  if(s>=9) return 3.5;
+  if(s>=7) return 3;
+  if(s>=5) return 2.5;
+  if(s>=3) return 2;
+  if(s>=2) return 1.5;
+  return 1;
+}
 function getRank(sc){
   const all = getCurrentStandings(sc, Math.min(cQ, 9));
   return all.findIndex(p=>p.you)+1;
@@ -546,7 +637,7 @@ function loadQ(){
   document.getElementById('q-progress-fill').style.width=`${(cQ/questions.length)*100}%`;
   document.getElementById('top-stripe').style.width=`${(cQ/questions.length)*100}%`;
   document.getElementById('score-display').textContent=score;
-  updateStreak();
+  updateStreak(false);
   const c=document.getElementById('answers');
   c.innerHTML='';
   q.options.forEach((opt,i)=>{
@@ -558,10 +649,31 @@ function loadQ(){
   });
   startReadingPhase();
 }
-function updateStreak(){
-  document.getElementById('streak-display').textContent=streak;
+function updateStreak(gained){
+  const el=document.getElementById('streak-display');
+  const wrap=document.getElementById('streak-wrap');
+  const multEl=document.getElementById('mult-badge');
+  el.textContent=streak;
+
+  // Color and glow based on streak length
+  if(streak>=5){ el.className='streak-num fire'; wrap.className='streak-wrap on-fire'; }
+  else if(streak>=3){ el.className='streak-num hot'; wrap.className='streak-wrap hot'; }
+  else { el.className='streak-num'; wrap.className='streak-wrap'; }
+
+  // Bump animation when streak increases
+  if(gained && streak>0){
+    el.classList.remove('bump');
+    void el.offsetWidth; // reflow
+    el.classList.add('bump');
+  }
+
   const m=mult(streak);
-  document.getElementById('mult-badge').innerHTML=m>1?`<span class="mult-badge">${m}×</span>`:'';
+  if(m>1){
+    const cls=m>=2?'mult-badge fire':'mult-badge';
+    multEl.innerHTML=`<span class="${cls}">${m}× MULTIPLIER</span>`;
+  } else {
+    multEl.innerHTML='';
+  }
 }
 function startReadingPhase(){
   // Show reading bar, hide answers
@@ -603,13 +715,13 @@ function updateTimerUI(t){
   arc.style.strokeDashoffset=CIRC*(1-t/TIMER_SEC);
   arc.style.stroke=t<=10?'#DC2626':t<=20?'#D97706':'#B8922A';
 }
-function animateScore(pts){
+function animateScore(pts, multiplied){
   const wrap=document.querySelector('.score-wrap');
   const pop=document.createElement('span');
-  pop.className='score-pop';
+  pop.className=`score-pop${multiplied?' multiplied':''}`;
   pop.textContent=`+${pts}`;
   wrap.appendChild(pop);
-  setTimeout(()=>pop.remove(), 1000);
+  setTimeout(()=>pop.remove(), 1200);
 }
 function selectAns(idx){
   if(answered) return;
@@ -639,7 +751,7 @@ function selectAns(idx){
     fb.className='feedback-row wrong';
   }
   qLog.push({answerChosen:LABELS[idx],wasCorrect:ok,timeTaken:taken,timedOut:false});
-  updateStreak();
+  updateStreak(false);
   document.getElementById('btn-next').disabled=false;
 }
 function expire(){
@@ -655,53 +767,96 @@ function expire(){
   document.getElementById('feedback').className='feedback-row wrong';
   document.getElementById('streak-msg').textContent='';
   qLog.push({answerChosen:'none',wasCorrect:false,timeTaken:TIMER_SEC,timedOut:true});
-  updateStreak();
+  updateStreak(false);
   document.getElementById('btn-next').disabled=false;
 }
 function showLeaderboard(){
   const overlay=document.getElementById('lb-overlay');
-  const cards=document.getElementById('lb-cards');
+  const cardsEl=document.getElementById('lb-cards');
   const cont=document.getElementById('lb-continue');
   const sub=document.getElementById('lb-overlay-sub');
+
   overlay.classList.add('active');
   cont.classList.remove('visible');
-  cards.innerHTML='';
   sub.textContent=`After question ${cQ+1} of ${questions.length}`;
+
   const all = getCurrentStandings(score, cQ);
   const newRank = all.findIndex(p=>p.you)+1;
-  all.forEach((p,i)=>{
-    const card=document.createElement('div');
-    card.className=`lb-card${p.you?' you':''}`;
-    let rankClass='';
-    if(i===0) rankClass='gold';
-    else if(i===1) rankClass='silver';
-    else if(i===2) rankClass='bronze';
-    let arrowHTML='';
-    if(p.you && prevRank!==null){
-      if(newRank<prevRank) arrowHTML=`<span class="lb-rank-arrow up">↑ ${prevRank-newRank}</span>`;
-      else if(newRank>prevRank) arrowHTML=`<span class="lb-rank-arrow same">↓ ${newRank-prevRank}</span>`;
-      else arrowHTML=`<span class="lb-rank-arrow same">—</span>`;
-    }
-    card.innerHTML=`
-      <div class="lb-rank-num ${rankClass}">${i+1}</div>
-      <div class="lb-card-name">${p.name}</div>
-      ${arrowHTML}
-      <div class="lb-card-score">${p.score}</div>
-    `;
-    cards.appendChild(card);
-    setTimeout(()=>{
-      card.classList.add('animate-in');
-      if(p.you){
-        setTimeout(()=>{
-          if(prevRank!==null && newRank<prevRank) card.classList.add('rise');
-          else if(prevRank!==null) card.classList.add('shake');
-        }, 400);
+
+  function rankClass(i){ return i===0?'gold':i===1?'silver':i===2?'bronze':''; }
+
+  // FIRST TIME: animate cards in from right
+  if(!cardsEl.children.length){
+    all.forEach((p,i)=>{
+      const card = document.createElement('div');
+      card.className=`lb-card${p.you?' you':''}`;
+      card.dataset.name=p.name;
+      card.innerHTML=`
+        <div class="lb-rank-num ${rankClass(i)}">${i+1}</div>
+        <div class="lb-card-name">${p.name}</div>
+        <span class="lb-rank-arrow" style="opacity:0">—</span>
+        <div class="lb-card-score">${p.score}</div>`;
+      cardsEl.appendChild(card);
+      setTimeout(()=>card.classList.add('animate-in'), i*120);
+    });
+  } else {
+    // FLIP: record current positions before reorder
+    const cards = Array.from(cardsEl.children);
+    const firstPos={};
+    cards.forEach(c=>{ firstPos[c.dataset.name]=c.getBoundingClientRect().top; });
+
+    // Update scores and arrows, then reorder DOM
+    all.forEach((p,i)=>{
+      let card = cardsEl.querySelector(`[data-name="${p.name}"]`);
+      if(!card){
+        card=document.createElement('div');
+        card.className=`lb-card animate-in${p.you?' you':''}`;
+        card.dataset.name=p.name;
+        card.innerHTML=`
+          <div class="lb-rank-num ${rankClass(i)}">${i+1}</div>
+          <div class="lb-card-name">${p.name}</div>
+          <span class="lb-rank-arrow" style="opacity:0">—</span>
+          <div class="lb-card-score">${p.score}</div>`;
+        cardsEl.appendChild(card);
+        return;
       }
-    }, i*120);
-  });
+      // Update rank number and class
+      const rn=card.querySelector('.lb-rank-num');
+      rn.textContent=i+1;
+      rn.className='lb-rank-num '+rankClass(i);
+      // Update score
+      card.querySelector('.lb-card-score').textContent=p.score;
+      // Update arrow for participant
+      const arrow=card.querySelector('.lb-rank-arrow');
+      if(p.you && prevRank!==null){
+        if(newRank<prevRank){ arrow.textContent=`↑${prevRank-newRank}`; arrow.className='lb-rank-arrow up'; arrow.style.opacity=1; }
+        else if(newRank>prevRank){ arrow.textContent=`↓${newRank-prevRank}`; arrow.className='lb-rank-arrow same'; arrow.style.opacity=1; }
+        else { arrow.textContent='—'; arrow.className='lb-rank-arrow same'; arrow.style.opacity=0.5; }
+      }
+      // Reorder
+      cardsEl.appendChild(card);
+    });
+
+    // PLAY: calculate delta and animate each card to new position
+    Array.from(cardsEl.children).forEach(card=>{
+      const name=card.dataset.name;
+      if(firstPos[name]===undefined) return;
+      const lastTop=card.getBoundingClientRect().top;
+      const delta=firstPos[name]-lastTop;
+      if(Math.abs(delta)>2){
+        card.style.transition='none';
+        card.style.transform=`translateY(${delta}px)`;
+        card.getBoundingClientRect(); // force reflow
+        card.style.transition='transform 0.55s cubic-bezier(0.25,0.46,0.45,0.94)';
+        card.style.transform='translateY(0)';
+      }
+    });
+  }
+
   prevRank=newRank;
-  setTimeout(()=>cont.classList.add('visible'), all.length*120+800);
+  setTimeout(()=>cont.classList.add('visible'), 1400);
 }
+
 function nextQuestion(){
   document.getElementById('lb-overlay').classList.remove('active');
   cQ++;
