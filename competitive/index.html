@@ -523,7 +523,7 @@ const playerProfiles = [
 // Pre-generate per-question gains at game start so leaderboard feels live
 // Accuracy rates per player — used to simulate realistic scores using actual game mechanics
 // Accuracy rates — calibrated for extended multiplier system
-const playerAccuracy = [0.88, 0.76, 0.65, 0.50, 0.32];
+const playerAccuracy = [0.96, 0.85, 0.72, 0.55, 0.35];
 
 let playerGains = [];
 function initPlayerGains(){
@@ -531,9 +531,9 @@ function initPlayerGains(){
     let gains = [];
     let pStreak = 0;
     for(let i=0;i<10;i++){
-      // A. Mitchell (idx=0) has a 20% chance of a surprise mistake on any question
-      // This makes the leaderboard feel more unpredictable and competitive
-      const mistakeChance = idx===0 ? 0.20 : 0;
+      // Everyone can make surprise mistakes — higher for top scorers
+      const mistakeChances = [0.18, 0.14, 0.1, 0.07, 0.04];
+      const mistakeChance = mistakeChances[idx] || 0;
       const hasMistake = Math.random() < mistakeChance;
       const correct = !hasMistake && (Math.random() < playerAccuracy[idx]);
       if(correct){
@@ -703,18 +703,18 @@ function startReadingPhase(){
   wrap.classList.add('visible');
   answers.classList.add('hidden');
   fill.style.width='0%';
-  readTimeLeft=10;
+  readTimeLeft=5;
   clearInterval(readInt);
   readInt=setInterval(()=>{
     readTimeLeft--;
-    const pct=((10-readTimeLeft)/10)*100;
+    const pct=((5-readTimeLeft)/5)*100;
     fill.style.width=pct+'%';
-    if(readTimeLeft<=3) label.textContent=`Answers appear in ${readTimeLeft}s…`;
+    if(readTimeLeft<=2) label.textContent=`Answers appear in ${readTimeLeft}s…`;
     if(readTimeLeft<=0){
       clearInterval(readInt);
       wrap.classList.remove('visible');
       answers.classList.remove('hidden');
-      label.textContent='Read the question — answers appear in 10s';
+      label.textContent='Read the question — answers appear in 5s';
       startTimer();
     }
   },1000);
