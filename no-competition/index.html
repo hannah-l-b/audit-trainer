@@ -16,7 +16,6 @@
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 16px 48px;}
   #top-stripe{position:fixed;top:0;left:0;height:4px;background:linear-gradient(90deg,var(--accent),var(--accent-light));width:0%;transition:width 0.5s ease;z-index:100;}
-
   /* START */
   #start-screen{max-width:560px;width:100%;margin:auto;text-align:center;padding:48px 0;}
   .brand-tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:28px;padding:6px 16px;border:1px solid var(--accent);border-radius:100px;}
@@ -30,7 +29,6 @@
   .meta-item .lbl{font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:4px;}
   .btn-primary{background:var(--accent);color:var(--text);border:none;padding:16px 52px;font-family:'Inter',sans-serif;font-size:1rem;font-weight:700;border-radius:100px;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 14px rgba(184,146,42,0.35);}
   .btn-primary:hover{background:var(--accent-light);transform:translateY(-2px);}
-
   /* GAME */
   #game-screen{display:none;max-width:720px;width:100%;padding-top:56px;}
   .stats-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
@@ -47,7 +45,6 @@
   .q-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:32px 36px;margin-bottom:16px;box-shadow:var(--shadow);}
   .q-eyebrow{font-size:0.7rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--accent);margin-bottom:16px;}
   .q-text{font-size:1rem;line-height:1.75;color:var(--text);white-space:pre-line;}
-
   /* Reading phase */
   .reading-bar-wrap{margin-bottom:12px;display:none;}
   .reading-bar-wrap.visible{display:block;}
@@ -55,7 +52,6 @@
   .reading-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
   .reading-bar-fill{height:100%;background:var(--accent);border-radius:2px;transition:width 0.1s linear;}
   .answers.hidden{visibility:hidden;pointer-events:none;}
-
   .answers{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
   .ans-btn{display:flex;align-items:stretch;background:var(--panel);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all 0.15s;text-align:left;width:100%;box-shadow:var(--shadow);}
   .ans-btn:hover:not(:disabled){border-color:var(--accent);box-shadow:0 0 0 3px rgba(184,146,42,0.15),var(--shadow);transform:translateY(-1px);}
@@ -83,7 +79,6 @@
   .btn-next{display:block;width:100%;background:var(--text);color:#fff;border:none;padding:15px;font-family:'Inter',sans-serif;font-size:0.95rem;font-weight:700;border-radius:var(--radius);cursor:pointer;transition:all 0.2s;box-shadow:0 4px 12px rgba(15,27,42,0.2);}
   .btn-next:hover:not(:disabled){background:#1e3252;transform:translateY(-1px);}
   .btn-next:disabled{opacity:0.3;cursor:default;transform:none;}
-
   /* END */
   #end-screen{display:none;max-width:560px;width:100%;margin:auto;padding:64px 0;text-align:center;}
   .end-eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:20px;display:inline-block;padding:6px 16px;border:1px solid var(--accent);border-radius:100px;}
@@ -105,7 +100,6 @@
 </head>
 <body>
 <div id="top-stripe"></div>
-
 <div id="start-screen">
   <div class="brand-tag">Audit Training Exercise</div>
   <h1>Test your audit procedure knowledge</h1>
@@ -116,7 +110,6 @@
   </div>
   <button class="btn-primary" onclick="startGame()">Begin exercise</button>
 </div>
-
 <div id="game-screen">
   <div class="stats-bar">
     <div class="stat-pill">Score <strong id="score-display">0</strong></div>
@@ -142,7 +135,6 @@
   <div class="feedback-row empty" id="feedback"></div>
   <button class="btn-next" id="btn-next" onclick="nextQuestion()" disabled>Continue →</button>
 </div>
-
 <div id="end-screen">
   <div class="end-eyebrow">Exercise complete</div>
   <h2>Well done.</h2>
@@ -152,13 +144,11 @@
   <div class="record-note">📋 Please note your final score before continuing to the next part of the study.</div>
   <div class="save-status" id="save-status">Saving results…</div>
 </div>
-
 <script>
 const CONDITION='no-competition';
 const TIMER_SEC=30;
 const BASE_PTS=100;
 const CIRC=188.5;
-
 const questionGroups = [
 
   // GIMME 1 — Auditing standards
@@ -170,46 +160,40 @@ const questionGroups = [
   // GIMME 3 — Purpose of audit
   [{q:"What is the primary purpose of a financial statement audit?",options:["To detect all fraud within a company","To guarantee the accuracy of all financial statement figures","To prepare financial statements on behalf of the client","To provide reasonable assurance that financial statements are free of material misstatement"],correct:3}],
 
-  // HARD 1 — Sales journal: inspection
-  [{q:"You want to ensure that transactions included in the sales journal are supported by receiving documents (e.g., purchase orders, bill of lading, sales invoices).\n\nWhat type of procedure should you perform?",options:["Confirmation","Inspection","Observation","Reperformance"],correct:1}],
+  // HARD 1 — Group 1: Direction of vouching (hardest in group)
+  [{q:"You want to ensure that transactions included in the sales journal are supported by receiving documents (e.g., purchase orders, bill of lading, sales invoices).\n\nDoes this procedure need to be performed in a specific direction?",options:["No, direction does not matter for this procedure","Yes, but the direction depends on the size of the transaction being tested","Yes, you should trace from the receiving documents to the sales journal","Yes, you should vouch from the sales journal back to the receiving documents"],correct:3}],
 
-  // HARD 2 — AR pledged: rights and obligations
+  // HARD 2 — Group 2: Rights and obligations assertion (hardest in group)
   [{q:"While reviewing the client's accounts receivable balance, you want to determine whether any receivables have been pledged as collateral or factored to a third party.\n\nWhich assertion(s) would you be addressing by performing these procedures?",options:["Completeness","Existence/Occurrence","Rights and obligations","Valuation/Accuracy"],correct:2}],
 
-  // HARD 3 — Depreciation: recalculation
+  // HARD 3 — Group 3: Recalculation vs reperformance
   [{q:"While reviewing the client's fixed asset schedule, you want to verify that the client has correctly calculated depreciation expense for the year using the appropriate method, useful life, and salvage value for each asset.\n\nWhat audit procedure should you perform?",options:["Inquiry","Observation","Recalculation","Reperformance"],correct:2}],
 
-  // HARD 4 — Revenue recognition: inquiry
-  [{q:"You are auditing your client's revenue balance and notice that the company has several long-term contracts with customers. You want to understand how management applies its revenue recognition policy to these contracts in practice, including how performance obligations are identified and when revenue is recorded.\n\nWhat procedure should you perform?",options:["Confirmation","Inquiry","Inspection","Observation"],correct:1}],
+  // HARD 4 — Group 4: Presentation and disclosure + valuation/accuracy (hardest in group)
+  [{q:"You are auditing your client's revenue balance and notice that the company has several long-term contracts with customers. You want to understand how management applies its revenue recognition policy to these contracts in practice, including how performance obligations are identified and when revenue is recorded.\n\nWhich assertion(s) are you primarily addressing in this scenario?",options:["Completeness, cutoff","Existence/occurrence, completeness, valuation/accuracy","Existence/occurrence, rights and obligations","Presentation and disclosure, valuation/accuracy"],correct:3}],
 
-  // HARD 5 — Revenue pattern: cutoff assertion
+  // HARD 5 — Group 5: Cutoff + existence/occurrence (hardest in group)
   [{q:"You notice that your client's revenue in the final month of the fiscal year is significantly higher than the same period in prior years, while revenue in the first month of the following year is unusually low.\n\nWhat assertion are you primarily concerned about in this scenario?",options:["Completeness, valuation/accuracy","Cutoff, existence/occurrence","Cutoff, valuation/accuracy","Existence/occurrence, completeness"],correct:1}],
 
-  // HARD 6 — Electronics counting: observation/reperformance/inspection
+  // HARD 6 — Group 6: All three procedures together (hardest in group)
   [{q:"A manufacturing company has an internal control policy stating that every box of electronics must be counted by two authorized staff members to prevent errors and fraud.\n\nWhat procedures would most directly allow you to determine whether the company has been following this policy?",options:["Confirmation, inquiry, recalculation","Confirmation, recalculation, analytical procedures","Inquiry, analytical procedures, recalculation","Observation, reperformance, inspection"],correct:3}],
 
-  // HARD 7 — Subsidiary ledger: foot the balances
+  // HARD 7 — Group 7: Footing the subsidiary ledger (hardest in group)
   [{q:"During planning, you discover that your client has experienced recurring errors in their subsidiary ledger, including mispostings, omissions, and duplicate entries.\n\nWhich of the following best describes what you would specifically do when performing a recalculation procedure?",options:["Foot the individual customer balances in the subsidiary ledger and agree the total to the control account in the general ledger","Observe client personnel as they process and record transactions into the subsidiary ledger","Reconcile the subsidiary ledger balances to third-party confirmations received from customers","Trace individual transactions from the subsidiary ledger back to the original source documents"],correct:0}]
 
 ];
 
 questionGroups.forEach((group,gi)=>{group.forEach((q,qi)=>{q.groupIndex=gi;q.positionInGroup=qi;q.originalIndex=gi*10+qi;});});
-
 function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
-
 let questions=[];
 let questionOrder=[];
 function buildQuestions(){shuffle(questionGroups);questions=questionGroups.flat();questionOrder=questions.map(q=>q.originalIndex);}
-
 const LABELS=['A','B','C','D'];
 let cQ=0,score=0,streak=0,maxStreak=0,correctCount=0,timedOutCount=0;
 let answered=false,timerInt=null,readInt=null,timeLeft=TIMER_SEC,readTimeLeft=10;
 let qStart=null,gameStart=null,qLog=[];
-
 function mult(s){return s>=5?2:s>=3?1.5:s>=2?1.25:1;}
-
 function startGame(){buildQuestions();gameStart=Date.now();document.getElementById('start-screen').style.display='none';document.getElementById('game-screen').style.display='block';loadQ();}
-
 function loadQ(){
   answered=false;timeLeft=TIMER_SEC;qStart=Date.now();
   document.getElementById('feedback').textContent='';
@@ -233,7 +217,6 @@ function loadQ(){
   });
   startReadingPhase();
 }
-
 function startReadingPhase(){
   const wrap=document.getElementById('reading-bar-wrap');
   const fill=document.getElementById('reading-bar-fill');
@@ -252,20 +235,17 @@ function startReadingPhase(){
     if(readTimeLeft<=0){clearInterval(readInt);wrap.classList.remove('visible');answers.classList.remove('hidden');label.textContent='Read the question — answers appear in 10s';startTimer();}
   },1000);
 }
-
 function startTimer(){
   updateTimerUI(TIMER_SEC);
   clearInterval(timerInt);
   timerInt=setInterval(()=>{timeLeft--;updateTimerUI(timeLeft);if(timeLeft<=0){clearInterval(timerInt);if(!answered)expire();}},1000);
 }
-
 function updateTimerUI(t){
   document.getElementById('timer-num').textContent=t;
   const arc=document.getElementById('timer-arc');
   arc.style.strokeDashoffset=CIRC*(1-t/TIMER_SEC);
   arc.style.stroke=t<=10?'#DC2626':t<=20?'#D97706':'#B8922A';
 }
-
 function selectAns(idx){
   if(answered)return;
   answered=true;clearInterval(timerInt);clearInterval(readInt);
@@ -288,7 +268,6 @@ function selectAns(idx){
   document.getElementById('score-display').textContent=score;
   document.getElementById('btn-next').disabled=false;
 }
-
 function expire(){
   answered=true;clearInterval(readInt);
   const q=questions[cQ];
@@ -301,9 +280,7 @@ function expire(){
   qLog.push({answerChosen:'none',wasCorrect:false,timeTaken:TIMER_SEC,timedOut:true});
   document.getElementById('btn-next').disabled=false;
 }
-
 function nextQuestion(){cQ++;if(cQ>=questions.length)endGame();else loadQ();}
-
 function endGame(){
   document.getElementById('game-screen').style.display='none';
   document.getElementById('end-screen').style.display='block';
