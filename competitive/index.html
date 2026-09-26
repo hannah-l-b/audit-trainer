@@ -527,6 +527,7 @@ function getRank(sc){
 }
 function startGame(){
   buildQuestions();
+  initPlayerGains();
   gameStart=Date.now();
   document.getElementById('start-screen').style.display='none';
   document.getElementById('game-screen').style.display='block';
