@@ -431,7 +431,7 @@
   <div class="meta-row">
     <div class="meta-item"><span class="num">10</span><span class="lbl">Questions</span></div>
     <div class="meta-item"><span class="num">30s</span><span class="lbl">Per question</span></div>
-    <div class="meta-item"><span class="num">2×</span><span class="lbl">Max multiplier</span></div>
+    <div class="meta-item"><span class="num">3.5×</span><span class="lbl">Max multiplier</span></div>
   </div>
   <button class="btn-primary" onclick="startGame()">Begin exercise</button>
 </div>
@@ -559,27 +559,39 @@ function getCurrentStandings(participantScore, upToQuestion){
 // Questions organized in scenario groups
 // Groups are shuffled as units; questions within each group stay in order
 const questionGroups = [
+
   // GIMME 1 — Auditing standards
   [{q:"Which organization establishes auditing standards for audits of public companies in the United States?",options:["AICPA","FASB","PCAOB","SEC"],correct:2}],
+
   // GIMME 2 — Accounting standards
   [{q:"Which set of accounting standards is required for financial reporting by companies in the United States?",options:["GAAP","GAAS","IFRS","ISA"],correct:0}],
+
   // GIMME 3 — Purpose of audit
   [{q:"What is the primary purpose of a financial statement audit?",options:["To detect all fraud within a company","To guarantee the accuracy of all financial statement figures","To prepare financial statements on behalf of the client","To provide reasonable assurance that financial statements are free of material misstatement"],correct:3}],
-  // HARD 1 — Sales journal: inspection
-  [{q:"You want to ensure that transactions included in the sales journal are supported by receiving documents (e.g., purchase orders, bill of lading, sales invoices).\n\nWhat type of procedure should you perform?",options:["Confirmation","Inspection","Observation","Reperformance"],correct:1}],
-  // HARD 2 — AR pledged: rights and obligations
+
+  // HARD 1 — Group 1: Direction of vouching (hardest in group)
+  [{q:"You want to ensure that transactions included in the sales journal are supported by receiving documents (e.g., purchase orders, bill of lading, sales invoices).\n\nDoes this procedure need to be performed in a specific direction?",options:["No, direction does not matter for this procedure","Yes, but the direction depends on the size of the transaction being tested","Yes, you should trace from the receiving documents to the sales journal","Yes, you should vouch from the sales journal back to the receiving documents"],correct:3}],
+
+  // HARD 2 — Group 2: Rights and obligations assertion (hardest in group)
   [{q:"While reviewing the client's accounts receivable balance, you want to determine whether any receivables have been pledged as collateral or factored to a third party.\n\nWhich assertion(s) would you be addressing by performing these procedures?",options:["Completeness","Existence/Occurrence","Rights and obligations","Valuation/Accuracy"],correct:2}],
-  // HARD 3 — Depreciation: recalculation
+
+  // HARD 3 — Group 3: Recalculation vs reperformance
   [{q:"While reviewing the client's fixed asset schedule, you want to verify that the client has correctly calculated depreciation expense for the year using the appropriate method, useful life, and salvage value for each asset.\n\nWhat audit procedure should you perform?",options:["Inquiry","Observation","Recalculation","Reperformance"],correct:2}],
-  // HARD 4 — Revenue recognition: inquiry
-  [{q:"You are auditing your client's revenue balance and notice that the company has several long-term contracts with customers. You want to understand how management applies its revenue recognition policy to these contracts in practice, including how performance obligations are identified and when revenue is recorded.\n\nWhat procedure should you perform?",options:["Confirmation","Inquiry","Inspection","Observation"],correct:1}],
-  // HARD 5 — Revenue pattern: cutoff assertion
+
+  // HARD 4 — Group 4: Presentation and disclosure + valuation/accuracy (hardest in group)
+  [{q:"You are auditing your client's revenue balance and notice that the company has several long-term contracts with customers. You want to understand how management applies its revenue recognition policy to these contracts in practice, including how performance obligations are identified and when revenue is recorded.\n\nWhich assertion(s) are you primarily addressing in this scenario?",options:["Completeness, cutoff","Existence/occurrence, completeness, valuation/accuracy","Existence/occurrence, rights and obligations","Presentation and disclosure, valuation/accuracy"],correct:3}],
+
+  // HARD 5 — Group 5: Cutoff + existence/occurrence (hardest in group)
   [{q:"You notice that your client's revenue in the final month of the fiscal year is significantly higher than the same period in prior years, while revenue in the first month of the following year is unusually low.\n\nWhat assertion are you primarily concerned about in this scenario?",options:["Completeness, valuation/accuracy","Cutoff, existence/occurrence","Cutoff, valuation/accuracy","Existence/occurrence, completeness"],correct:1}],
-  // HARD 6 — Electronics counting: observation/reperformance/inspection
+
+  // HARD 6 — Group 6: All three procedures together (hardest in group)
   [{q:"A manufacturing company has an internal control policy stating that every box of electronics must be counted by two authorized staff members to prevent errors and fraud.\n\nWhat procedures would most directly allow you to determine whether the company has been following this policy?",options:["Confirmation, inquiry, recalculation","Confirmation, recalculation, analytical procedures","Inquiry, analytical procedures, recalculation","Observation, reperformance, inspection"],correct:3}],
-  // HARD 7 — Subsidiary ledger: foot the balances
+
+  // HARD 7 — Group 7: Footing the subsidiary ledger (hardest in group)
   [{q:"During planning, you discover that your client has experienced recurring errors in their subsidiary ledger, including mispostings, omissions, and duplicate entries.\n\nWhich of the following best describes what you would specifically do when performing a recalculation procedure?",options:["Foot the individual customer balances in the subsidiary ledger and agree the total to the control account in the general ledger","Observe client personnel as they process and record transactions into the subsidiary ledger","Reconcile the subsidiary ledger balances to third-party confirmations received from customers","Trace individual transactions from the subsidiary ledger back to the original source documents"],correct:0}]
+
 ];
+
 questionGroups.forEach((group,gi)=>{
   group.forEach((q,qi)=>{
     q.groupIndex=gi;
