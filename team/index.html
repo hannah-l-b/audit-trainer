@@ -476,7 +476,7 @@ const teamProfiles = [
 const teamStartScores = [0, 0, 0, 0, 0];
 // Team accuracy rates — each "team" represents two players combined
 // Simulated using actual game mechanics (BASE_PTS * streak multiplier)
-const teamAccuracy = [0.90, 0.80, 0.68, 0.54, 0.38];
+const teamAccuracy = [0.96, 0.85, 0.72, 0.55, 0.35];
 
 let teamGains = [];
 function initTeamGains(){
@@ -486,8 +486,9 @@ function initTeamGains(){
     for(let i=0;i<10;i++){
       let qScore=0;
       for(let member=0;member<2;member++){
-        // Team 1 (idx=0) has a 20% chance of a surprise mistake
-        const mistakeChance=idx===0?0.20:0;
+        // All teams can make surprise mistakes — higher for top teams
+        const teamMistakeChances = [0.18, 0.14, 0.1, 0.07, 0.04];
+        const mistakeChance=teamMistakeChances[idx]||0;
         const hasMistake=Math.random()<mistakeChance;
         const correct=!hasMistake&&(Math.random()<teamAccuracy[idx]);
         if(correct){ qScore+=Math.round(BASE_PTS*mult(pStreak)); pStreak++; }
@@ -642,18 +643,18 @@ function startReadingPhase(){
   wrap.classList.add('visible');
   answers.classList.add('hidden');
   fill.style.width='0%';
-  readTimeLeft=10;
+  readTimeLeft=5;
   clearInterval(readInt);
   readInt=setInterval(()=>{
     readTimeLeft--;
-    const pct=((10-readTimeLeft)/10)*100;
+    const pct=((5-readTimeLeft)/5)*100;
     fill.style.width=pct+'%';
-    if(readTimeLeft<=3) label.textContent=`Answers appear in ${readTimeLeft}s…`;
+    if(readTimeLeft<=2) label.textContent=`Answers appear in ${readTimeLeft}s…`;
     if(readTimeLeft<=0){
       clearInterval(readInt);
       wrap.classList.remove('visible');
       answers.classList.remove('hidden');
-      label.textContent='Read the question — answers appear in 10s';
+      label.textContent='Read the question — answers appear in 5s';
       startTimer();
     }
   },1000);
