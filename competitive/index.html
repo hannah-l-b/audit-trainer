@@ -306,19 +306,22 @@
   .lb-overlay-sub {
     font-size: 0.875rem; color: #6B7F94; margin-bottom: 32px;
   }
-  .lb-cards { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 8px; }
+  .lb-cards { width: 100%; max-width: 480px; position: relative; }
   .lb-card {
     display: flex; align-items: center; gap: 14px;
     background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
     border-radius: 12px; padding: 14px 20px;
-    opacity: 0; transform: translateX(40px);
-    transition: opacity 0.35s ease, transform 0.35s ease, background 0.3s;
+    position: absolute; width: 100%;
+    opacity: 0;
+    transition: top 0.6s cubic-bezier(0.25,0.46,0.45,0.94),
+                opacity 0.35s ease,
+                background 0.3s;
   }
   .lb-card.you {
     background: rgba(184,146,42,0.15);
     border-color: rgba(184,146,42,0.4);
   }
-  .lb-card.animate-in { opacity: 1; transform: translateX(0); }
+  .lb-card.animate-in { opacity: 1; }
   .lb-card.shake {
     animation: shake 0.5s ease 0.4s;
   }
@@ -528,7 +531,11 @@ function initPlayerGains(){
     let gains = [];
     let pStreak = 0;
     for(let i=0;i<10;i++){
-      const correct = Math.random() < playerAccuracy[idx];
+      // A. Mitchell (idx=0) has a 20% chance of a surprise mistake on any question
+      // This makes the leaderboard feel more unpredictable and competitive
+      const mistakeChance = idx===0 ? 0.20 : 0;
+      const hasMistake = Math.random() < mistakeChance;
+      const correct = !hasMistake && (Math.random() < playerAccuracy[idx]);
       if(correct){
         const m = mult(pStreak);
         gains.push(Math.round(BASE_PTS * m));
@@ -640,7 +647,7 @@ function loadQ(){
   answered=false; timeLeft=TIMER_SEC; qStart=Date.now();
   document.getElementById('feedback').textContent='';
   document.getElementById('feedback').className='feedback-row empty';
-  document.getElementById('streak-msg').textContent='';
+  const _sm=document.getElementById('streak-msg'); _sm.textContent=''; _sm.className='streak-msg';
   document.getElementById('btn-next').disabled=true;
   document.getElementById('btn-next').textContent='Continue →';
   const q=questions[cQ];
@@ -735,6 +742,15 @@ function animateScore(pts, multiplied){
   wrap.appendChild(pop);
   setTimeout(()=>pop.remove(), 1200);
 }
+function setStreakMsg(text, cls){
+  const smEl=document.getElementById('streak-msg');
+  smEl.style.animation='none';
+  smEl.getBoundingClientRect();
+  smEl.style.animation='';
+  smEl.textContent=text;
+  smEl.className='streak-msg'+(cls?' '+cls:'');
+}
+
 function selectAns(idx){
   if(answered) return;
   answered=true;
@@ -751,19 +767,32 @@ function selectAns(idx){
     const m=mult(streak);
     const pts=Math.round(BASE_PTS*m);
     score+=pts; streak++; maxStreak=Math.max(maxStreak,streak); correctCount++; ok=true;
-    fb.textContent='✓  Correct!';
+    if(m>1){
+      fb.innerHTML=`✓ &nbsp;Correct! &nbsp;<strong>+${pts} pts</strong> &nbsp;<span style="color:var(--accent);font-size:0.85rem">(${m}× streak bonus!)</span>`;
+    } else {
+      fb.innerHTML=`✓ &nbsp;Correct! &nbsp;<strong>+${pts} pts</strong>`;
+    }
     fb.className='feedback-row correct';
+    animateScore(pts, m>1);
     document.getElementById('score-display').textContent=score;
+    const smData=STREAK_MESSAGES[streak];
+    if(smData){ setStreakMsg(smData.msg, smData.cls||''); }
+    else { setStreakMsg('', ''); }
   } else {
     btns[idx].classList.add('wrong');
     btns[q.correct].classList.add('reveal');
+    const hadStreak=streak;
     streak=0;
-    const miss=MISS_MESSAGES[Math.floor(Math.random()*MISS_MESSAGES.length)];
-    fb.textContent=`✗  Incorrect — ${miss}`;
     fb.className='feedback-row wrong';
+    if(hadStreak>=2){
+      fb.innerHTML=`✗ &nbsp;Incorrect! &nbsp;<span style="font-size:0.85rem">Streak of ${hadStreak} broken!</span>`;
+    } else {
+      fb.innerHTML='✗ &nbsp;Incorrect.';
+    }
+    setStreakMsg(MISS_MESSAGES[Math.floor(Math.random()*MISS_MESSAGES.length)], 'wrong');
   }
   qLog.push({answerChosen:LABELS[idx],wasCorrect:ok,timeTaken:taken,timedOut:false});
-  updateStreak(false);
+  updateStreak(ok);
   document.getElementById('btn-next').disabled=false;
 }
 function expire(){
@@ -773,11 +802,16 @@ function expire(){
   const btns=document.querySelectorAll('.ans-btn');
   btns.forEach(b=>b.disabled=true);
   btns[q.correct].classList.add('reveal');
+  const hadStreak=streak;
   streak=0; timedOutCount++;
-  const miss=MISS_MESSAGES[Math.floor(Math.random()*MISS_MESSAGES.length)];
-  document.getElementById('feedback').textContent=`⏰  Time's up — ${miss}`;
-  document.getElementById('feedback').className='feedback-row wrong';
-  document.getElementById('streak-msg').textContent='';
+  const fb=document.getElementById('feedback');
+  fb.className='feedback-row wrong';
+  if(hadStreak>=2){
+    fb.innerHTML=`⏰ &nbsp;Time's up! &nbsp;<span style="font-size:0.85rem">Streak of ${hadStreak} broken!</span>`;
+  } else {
+    fb.innerHTML="⏰ &nbsp;Time's up!";
+  }
+  setStreakMsg(MISS_MESSAGES[Math.floor(Math.random()*MISS_MESSAGES.length)], 'wrong');
   qLog.push({answerChosen:'none',wasCorrect:false,timeTaken:TIMER_SEC,timedOut:true});
   updateStreak(false);
   document.getElementById('btn-next').disabled=false;
@@ -792,81 +826,86 @@ function showLeaderboard(){
   cont.classList.remove('visible');
   sub.textContent=`After question ${cQ+1} of ${questions.length}`;
 
-  const all = getCurrentStandings(score, cQ);
-  const newRank = all.findIndex(p=>p.you)+1;
+  const all=getCurrentStandings(score, cQ);
+  const newRank=all.findIndex(p=>p.you)+1;
+
+  const CARD_H=64;
+  const CARD_GAP=10;
+  const totalH=all.length*(CARD_H+CARD_GAP)-CARD_GAP;
+  cardsEl.style.height=totalH+'px';
 
   function rankClass(i){ return i===0?'gold':i===1?'silver':i===2?'bronze':''; }
 
-  // FIRST TIME: animate cards in from right
+  function makeArrow(p,i){
+    if(!p.you||prevRank===null) return '<span class="lb-rank-arrow" style="opacity:0">—</span>';
+    if(newRank<prevRank) return `<span class="lb-rank-arrow up">↑${prevRank-newRank}</span>`;
+    if(newRank>prevRank) return `<span class="lb-rank-arrow same">↓${newRank-prevRank}</span>`;
+    return '<span class="lb-rank-arrow same" style="opacity:0.4">—</span>';
+  }
+
   if(!cardsEl.children.length){
+    // First render — fly cards in from right staggered
     all.forEach((p,i)=>{
-      const card = document.createElement('div');
+      const card=document.createElement('div');
       card.className=`lb-card${p.you?' you':''}`;
       card.dataset.name=p.name;
+      card.style.top=(i*(CARD_H+CARD_GAP))+'px';
+      card.style.transform='translateX(60px)';
+      card.style.opacity='0';
       card.innerHTML=`
         <div class="lb-rank-num ${rankClass(i)}">${i+1}</div>
         <div class="lb-card-name">${p.name}</div>
-        <span class="lb-rank-arrow" style="opacity:0">—</span>
+        ${makeArrow(p,i)}
         <div class="lb-card-score">${p.score}</div>`;
       cardsEl.appendChild(card);
-      setTimeout(()=>card.classList.add('animate-in'), i*120);
+      setTimeout(()=>{
+        card.style.transition='top 0.6s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.4s ease, transform 0.4s ease, background 0.3s';
+        card.style.transform='translateX(0)';
+        card.style.opacity='1';
+        card.classList.add('animate-in');
+      }, i*120+50);
     });
   } else {
-    // FLIP: record current positions before reorder
-    const cards = Array.from(cardsEl.children);
-    const firstPos={};
-    cards.forEach(c=>{ firstPos[c.dataset.name]=c.getBoundingClientRect().top; });
-
-    // Update scores and arrows, then reorder DOM
+    // Update scores and smoothly move cards to new positions
     all.forEach((p,i)=>{
-      let card = cardsEl.querySelector(`[data-name="${p.name}"]`);
+      const targetTop=i*(CARD_H+CARD_GAP);
+      let card=cardsEl.querySelector(`[data-name="${p.name}"]`);
       if(!card){
         card=document.createElement('div');
         card.className=`lb-card animate-in${p.you?' you':''}`;
         card.dataset.name=p.name;
+        card.style.top=targetTop+'px';
         card.innerHTML=`
           <div class="lb-rank-num ${rankClass(i)}">${i+1}</div>
           <div class="lb-card-name">${p.name}</div>
-          <span class="lb-rank-arrow" style="opacity:0">—</span>
+          ${makeArrow(p,i)}
           <div class="lb-card-score">${p.score}</div>`;
         cardsEl.appendChild(card);
         return;
       }
-      // Update rank number and class
-      const rn=card.querySelector('.lb-rank-num');
-      rn.textContent=i+1;
-      rn.className='lb-rank-num '+rankClass(i);
-      // Update score
+      // Update content
+      card.className=`lb-card animate-in${p.you?' you':''}`;
+      card.querySelector('.lb-rank-num').textContent=i+1;
+      card.querySelector('.lb-rank-num').className='lb-rank-num '+rankClass(i);
       card.querySelector('.lb-card-score').textContent=p.score;
-      // Update arrow for participant
-      const arrow=card.querySelector('.lb-rank-arrow');
-      if(p.you && prevRank!==null){
-        if(newRank<prevRank){ arrow.textContent=`↑${prevRank-newRank}`; arrow.className='lb-rank-arrow up'; arrow.style.opacity=1; }
-        else if(newRank>prevRank){ arrow.textContent=`↓${newRank-prevRank}`; arrow.className='lb-rank-arrow same'; arrow.style.opacity=1; }
-        else { arrow.textContent='—'; arrow.className='lb-rank-arrow same'; arrow.style.opacity=0.5; }
-      }
-      // Reorder
-      cardsEl.appendChild(card);
-    });
-
-    // PLAY: calculate delta and animate each card to new position
-    Array.from(cardsEl.children).forEach(card=>{
-      const name=card.dataset.name;
-      if(firstPos[name]===undefined) return;
-      const lastTop=card.getBoundingClientRect().top;
-      const delta=firstPos[name]-lastTop;
-      if(Math.abs(delta)>2){
-        card.style.transition='none';
-        card.style.transform=`translateY(${delta}px)`;
-        card.getBoundingClientRect(); // force reflow
-        card.style.transition='transform 0.55s cubic-bezier(0.25,0.46,0.45,0.94)';
-        card.style.transform='translateY(0)';
-      }
+      card.querySelector('.lb-rank-arrow').outerHTML=makeArrow(p,i);
+      // Animate to new position
+      card.style.top=targetTop+'px';
     });
   }
 
+  // Shake participant card if rank unchanged, rise if improved
+  setTimeout(()=>{
+    const youCard=cardsEl.querySelector('.lb-card.you');
+    if(youCard && prevRank!==null){
+      if(newRank<prevRank) youCard.classList.add('rise');
+      else if(newRank===prevRank) youCard.classList.add('shake');
+      setTimeout(()=>{ youCard.classList.remove('rise','shake'); }, 600);
+    }
+  }, 400);
+
   prevRank=newRank;
-  setTimeout(()=>cont.classList.add('visible'), 1400);
+  setTimeout(()=>cont.classList.add('visible'), all.length*150+600);
 }
 
 function nextQuestion(){
