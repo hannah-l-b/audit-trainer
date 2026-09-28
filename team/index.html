@@ -378,7 +378,7 @@
 <div id="start-screen">
   <div class="brand-tag">Audit Training Exercise</div>
   <h1>Test your audit procedure knowledge</h1>
-  <p>Answer each question carefully. Your partner has already completed the exercise and scored <strong>1,150 points</strong>. Your score will be added to theirs, and a live team leaderboard will show your combined standing after every question.</p>
+  <p>Answer each question carefully. Your partner has already completed the exercise and scored <strong>1,850 points</strong>. Your score will be added to theirs, and a live team leaderboard will show your combined standing after every question.</p>
   <div class="meta-row">
     <div class="meta-item"><span class="num">10</span><span class="lbl">Questions</span></div>
     <div class="meta-item"><span class="num">30s</span><span class="lbl">Per question</span></div>
@@ -457,23 +457,18 @@ const MISS_MESSAGES = [
   "Shake it off — every question is a fresh chance! 💥"
 ];
 // Partner's pre-banked score added to participant's score for combined total
-const MANAGER_SCORE = 950;
-// Other teams with pre-set combined totals
-// Dynamic team profiles — scores build up question by question
-// Base scores include a simulated partner contribution
-// Team 5 starts at 850 (partner pre-banked) and grows slowly
-// Final scores approx over 10 questions: Team1 ~3200, Team2 ~2700, Team3 ~2200, Team4 ~1750, Team5 ~1300
-// Your Team: starts at 950 (partner pre-banked) + participant score
-// Good participant (~1000pts) brings Your Team to ~1950, competing for 2nd-3rd
-// Strong participant (~1500pts) brings Your Team to ~2450, can take 1st
+const MANAGER_SCORE = 1850;
+// Each competing team starts at their own partner's pre-banked score
+// Your Team: starts at 1850 (partner pre-banked) + participant score
+// Good participant (~1000pts) brings Your Team to ~2850, competing for 3rd-4th
+// Strong participant (~1500pts) brings Your Team to ~3350, competing for 2nd-3rd
 const teamProfiles = [
-  {name:"Team 1", avgGain:320, variance:45},
-  {name:"Team 2", avgGain:270, variance:36},
-  {name:"Team 3", avgGain:220, variance:28},
-  {name:"Team 4", avgGain:175, variance:22},
-  {name:"Team 5", avgGain:130, variance:18}
+  {name:"Team 1", startScore:2200, avgGain:320, variance:45},
+  {name:"Team 2", startScore:2000, avgGain:270, variance:36},
+  {name:"Team 3", startScore:1650, avgGain:220, variance:28},
+  {name:"Team 4", startScore:1300, avgGain:175, variance:22},
+  {name:"Team 5", startScore:950,  avgGain:130, variance:18}
 ];
-const teamStartScores = [0, 0, 0, 0, 0];
 // Team accuracy rates — each "team" represents two players combined
 // Simulated using actual game mechanics (BASE_PTS * streak multiplier)
 const teamAccuracy = [0.96, 0.85, 0.72, 0.55, 0.35];
@@ -496,7 +491,7 @@ function initTeamGains(){
       }
       gains.push(qScore);
     }
-    return {name:p.name, gains, start:0};
+    return {name:p.name, gains, start:p.startScore};
   });
 }
 function getTeamScore(teamIdx, upToQuestion){
