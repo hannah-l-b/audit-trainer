@@ -244,12 +244,12 @@
   <!-- Header -->
   <div class="teams-header">
     <div class="teams-header-left">
-      <div class="teams-avatar">
-        LW
+      <div class="teams-avatar" id="header-avatar">
+        LW<!-- initials set by JS -->
         <div class="teams-presence"></div>
       </div>
       <div class="teams-header-info">
-        <div class="teams-name">Laura Wardwell</div>
+        <div class="teams-name" id="header-name">Laura Wardwell<!-- name set by JS --></div>
         <div class="teams-status">
           <svg viewBox="0 0 16 16" fill="#f8b21d" width="12" height="12"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 1.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM7.25 4v4.31l2.97 2.97.53-.53-2.75-2.75V4h-.75z"/></svg>
           Busy
@@ -281,26 +281,26 @@
 
     <!-- Initial message -->
     <div class="msg-group">
-      <div class="msg-group-avatar">LW</div>
+      <div class="msg-group-avatar" id="init-avatar">LW</div>
       <div class="msg-group-content">
         <div class="msg-group-header">
-          <span class="msg-group-name">Laura Wardwell</span>
+          <span class="msg-group-name" id="init-name">Laura Wardwell</span>
           <span class="msg-group-time" id="init-time"></span>
         </div>
-        <div class="msg-bubble">Hi — I'm currently working on another client's audit, but send me a message if you need anything and I'll get back to you when I can.</div>
+        <div class="msg-bubble" id="init-msg">Hi — I'm currently working on another client's audit, but send me a message if you need anything and I'll get back to you when I can.</div>
       </div>
     </div>
 
     <!-- Typing indicator -->
     <div class="typing-group" id="typing-row">
-      <div class="msg-group-avatar">LW</div>
+      <div class="msg-group-avatar" id="typing-avatar">LW</div>
       <div class="typing-content">
         <div class="typing-dots">
           <div class="typing-dot"></div>
           <div class="typing-dot"></div>
           <div class="typing-dot"></div>
         </div>
-        Laura Wardwell is typing…
+        <span id="typing-label">Laura Wardwell is typing…</span>
       </div>
     </div>
 
@@ -330,7 +330,7 @@
       <textarea
         id="compose"
         class="compose-input"
-        placeholder="Type a message to Laura Wardwell"
+        placeholder="Type a message"
       ></textarea>
       <div class="compose-footer">
         <span class="compose-footer-left">Press Send to submit your message</span>
@@ -353,6 +353,12 @@ const CONTROL_INDEX   = _p.get("control")   || "0";
 const CURRENT_CONTROL = _p.get("name")      || "an internal control";
 const PARTICIPANT_ID  = _p.get("pid")       || "N/A";
 const CONDITION       = _p.get("condition") || "N/A";
+const MANAGER_NAME    = _p.get("manager")   || "Your Manager";
+
+function getInitials(name) {
+  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+const MANAGER_INITIALS = getInitials(MANAGER_NAME);
 // ─────────────────────────────────────────────────────────────
 
 let conversationHistory = [];
@@ -366,21 +372,33 @@ function getDate() {
   return new Date().toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
 }
 
+// ── APPLY DYNAMIC MANAGER NAME ──
+document.getElementById('header-avatar').childNodes[0].textContent = MANAGER_INITIALS;
+document.getElementById('header-name').textContent  = MANAGER_NAME;
+document.getElementById('init-avatar').textContent  = MANAGER_INITIALS;
+document.getElementById('init-name').textContent    = MANAGER_NAME;
+document.getElementById('typing-avatar').textContent = MANAGER_INITIALS;
+document.getElementById('typing-label').textContent  = MANAGER_NAME + ' is typing…';
+document.getElementById('compose').placeholder = 'Type a message to ' + MANAGER_NAME;
+
 document.getElementById('init-time').textContent = getTime();
 document.getElementById('date-label').textContent = getDate();
 
 // ── RESTORE HISTORY ──
+const HISTORY_KEY = 'managerHistory_' + CONTROL_INDEX;
+const THREAD_KEY  = 'managerThread_'  + CONTROL_INDEX;
+
 function saveHistory() {
   const msgs = document.getElementById('messages');
-  sessionStorage.setItem('lauraHistory', JSON.stringify(conversationHistory));
+  sessionStorage.setItem(HISTORY_KEY, JSON.stringify(conversationHistory));
   const clone = msgs.cloneNode(true);
   clone.querySelector('#typing-row')?.remove();
-  sessionStorage.setItem('lauraThread', clone.innerHTML);
+  sessionStorage.setItem(THREAD_KEY, clone.innerHTML);
 }
 
 function restoreHistory() {
-  const savedHistory = sessionStorage.getItem('lauraHistory');
-  const savedThread  = sessionStorage.getItem('lauraThread');
+  const savedHistory = sessionStorage.getItem(HISTORY_KEY);
+  const savedThread  = sessionStorage.getItem(THREAD_KEY);
   if (savedHistory && savedThread) {
     conversationHistory = JSON.parse(savedHistory);
     const msgs   = document.getElementById('messages');
@@ -402,8 +420,8 @@ function appendMessage(text, isLaura) {
 
   const avatarClass = isLaura ? '' : 'you-avatar';
   const nameClass   = isLaura ? '' : 'you-name';
-  const initials    = isLaura ? 'LW' : 'YN';
-  const sender      = isLaura ? 'Laura Wardwell' : 'You';
+  const initials    = isLaura ? MANAGER_INITIALS : 'YN';
+  const sender      = isLaura ? MANAGER_NAME : 'You';
   const escaped     = text.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
 
   group.innerHTML = `
@@ -450,36 +468,42 @@ async function sendMessage() {
   compose.style.height = 'auto';
   sendBtn.disabled = true;
   isWaiting = true;
-  statusEl.textContent = 'Message sent — Laura may take a moment to respond, please wait.';
+  statusEl.textContent = 'Message sent — ' + MANAGER_NAME + ' may take a moment to respond, please wait.';
+
+  // Brief pause before typing indicator appears (feels natural)
+  await new Promise(resolve => setTimeout(resolve, 1000 + Math.floor(Math.random() * 1000)));
   setTyping(true);
 
-  const delay = 30000 + Math.floor(Math.random() * 15000);
+  // Typing indicator shows for 3-4 seconds while we fetch the reply
+  const typingDuration = 3000 + Math.floor(Math.random() * 1000);
 
   try {
-    const response = await fetch(PROXY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages:       conversationHistory,
-        currentControl: CURRENT_CONTROL,
-        controlIndex:   CONTROL_INDEX,
-        participantId:  PARTICIPANT_ID,
-        condition:      CONDITION
-      })
-    });
+    const [response] = await Promise.all([
+      fetch(PROXY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages:       conversationHistory,
+          currentControl: CURRENT_CONTROL,
+          controlIndex:   CONTROL_INDEX,
+          participantId:  PARTICIPANT_ID,
+          condition:      CONDITION,
+          managerName:    MANAGER_NAME
+        })
+      }),
+      new Promise(resolve => setTimeout(resolve, typingDuration))
+    ]);
 
     const data  = await response.json();
     const reply = data.reply;
     conversationHistory = data.updatedMessages || [...conversationHistory, { role: 'assistant', content: reply }];
-
-    await new Promise(resolve => setTimeout(resolve, delay));
 
     setTyping(false);
     appendMessage(reply, true);
     statusEl.textContent = '';
 
   } catch (err) {
-    await new Promise(resolve => setTimeout(resolve, delay));
+    await new Promise(resolve => setTimeout(resolve, typingDuration));
     setTyping(false);
     appendMessage('Sorry for the delay — I was in the middle of something. Let me know if you have any other questions.', true);
     statusEl.textContent = '';
