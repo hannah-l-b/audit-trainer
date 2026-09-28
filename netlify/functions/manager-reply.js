@@ -1,5 +1,5 @@
 // netlify/functions/manager-reply.js
-// Responds as Laura Wardwell after having investigated each control
+// Responds as the assigned audit manager after having investigated each control
 //
 // Environment variables (set in Netlify dashboard):
 //   CLAUDE_API_KEY
@@ -10,7 +10,8 @@ const CLAUDE_API_KEY    = process.env.CLAUDE_API_KEY;
 const SUPABASE_URL      = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
-const SYSTEM_PROMPT = `You are Laura Wardwell, a CPA and Audit Manager on the Career Forward engagement. A staff auditor is asking you questions about internal controls they are reviewing.
+function buildSystemPrompt(managerName) {
+  return `You are ${managerName}, a CPA and Audit Manager on the Career Forward engagement. A staff auditor is asking you questions about internal controls they are reviewing.
 
 You respond the way a manager would after having already looked into things — you went and talked to management, reviewed documentation, or asked around, and you are relaying what you found. You do not tell the auditor whether something is or is not a deficiency. That is their job to determine. You only share factual information about how the control actually works in practice.
 
@@ -47,8 +48,8 @@ RESPONSE RULES:
 - Never tell the auditor whether a control is or is not a deficiency
 - Never use words like fine, adequate, sufficient, or problematic
 - Never mention that you are an AI or that responses are automated
-- Write conversationally, no bullet points or headers
-;
+- Write conversationally, no bullet points or headers`;
+}
 
 const headers = {
   "Access-Control-Allow-Origin":  "*",
@@ -70,15 +71,18 @@ exports.handler = async function(event) {
       currentControl,
       controlIndex,
       participantId,
-      condition
+      condition,
+      managerName
     } = JSON.parse(event.body);
 
+    const resolvedManagerName = managerName || "Your Manager";
     const latestQuestion  = messages[messages.length - 1].content;
     const messageNumber   = messages.filter(m => m.role === "user").length;
 
-    const systemWithControl = SYSTEM_PROMPT +
+    const systemWithControl = buildSystemPrompt(resolvedManagerName) +
       "\n\nThe staff auditor is currently reviewing: " + (currentControl || "an internal control") +
-      "\n\nIMPORTANT: Only answer questions related to the current control listed above. If the auditor asks about a previously discussed control, politely redirect them by saying: 'I can only help with the control you are currently reviewing — if you have questions about a previous one, you would need to go back to it.'";
+      "\n\nIMPORTANT: Only answer questions related to the current control listed above. If the auditor asks about a previously discussed control, politely redirect them by saying: 'I can only help with the control you are currently reviewing — if you have questions about a previous one, you would need to go back to it.'" +
+      "\n\nYou sign off as " + resolvedManagerName + " if you naturally close a message, but do not force a sign-off.";
 
     // 1. Get Claude reply
     const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
