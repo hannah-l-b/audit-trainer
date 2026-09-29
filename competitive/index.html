@@ -488,21 +488,22 @@ const TIMER_SEC = 30;
 const BASE_PTS  = 100;
 const CIRC      = 188.5;
 const STREAK_MESSAGES = {
-  2: {msg:"Nice! 2 in a row — 1.5× multiplier active! 💪",   cls:""},
-  3: {msg:"3-question streak! 2× multiplier — on a roll! 🔥", cls:""},
-  4: {msg:"Four in a row! 2× multiplier — don't break it! 🔥🔥", cls:""},
-  5: {msg:"ON FIRE! 2.5× multiplier activated! 🔥🔥🔥",       cls:"fire"},
-  6: {msg:"INCREDIBLE! 2.5× — you're climbing! 🔥🔥🔥",       cls:"fire"},
-  7: {msg:"UNSTOPPABLE! 3× MULTIPLIER! 🔥🔥🔥🔥",             cls:"fire"},
-  8: {msg:"LEGENDARY! 3× — you're dominating! 🔥🔥🔥🔥",     cls:"fire"},
-  9: {msg:"UNREAL! 3.5× MULTIPLIER — PERFECT STREAK! 🏆🔥🔥🔥🔥", cls:"fire"}
+  2:  {msg:"Nice! 2 in a row — 1.5× multiplier active! 💪",          cls:""},
+  3:  {msg:"3-question streak! 2× multiplier — you're on a roll! 🔥", cls:""},
+  4:  {msg:"Four in a row! 2× multiplier — don't break it! 🔥🔥",    cls:""},
+  5:  {msg:"ON FIRE! 2.5× multiplier activated! 🔥🔥🔥",              cls:"fire"},
+  6:  {msg:"INCREDIBLE! 2.5× — you're climbing! 🔥🔥🔥",              cls:"fire"},
+  7:  {msg:"UNSTOPPABLE! 3× MULTIPLIER! 🔥🔥🔥🔥",                    cls:"fire"},
+  8:  {msg:"LEGENDARY! 3× — you're dominating! 🔥🔥🔥🔥",            cls:"fire"},
+  9:  {msg:"UNREAL! 3.5× MULTIPLIER — PERFECT STREAK! 🏆🔥🔥🔥🔥",   cls:"fire"},
+  10: {msg:"FLAWLESS! 3.5× — ALL 10 CORRECT! YOU WIN! 🏆🔥🔥🔥🔥",   cls:"fire"}
 };
 const MISS_MESSAGES = [
-  "Keep going — you've got this!",
-  "Stay focused, next one's yours.",
-  "Shake it off and move on.",
-  "You're still in it — keep pushing.",
-  "Don't worry, every question is a fresh start."
+  "Streak broken! Refocus — you can still climb back up! 💪",
+  "Oops! Don't let that knock you off the leaderboard! 😤",
+  "Streak gone — but you can still climb back! 🚀",
+  "That one hurt! Stay sharp for the next one! ⚡",
+  "Shake it off — every question is a fresh chance! 💥"
 ];
 // Dynamic player profiles — everyone starts at 0, scores build question by question
 // Final scores approx over 10 questions: A.Mitchell ~1200, J.Torres ~1000, C.Reynolds ~800, R.Sanders ~550, M.Liu ~280
