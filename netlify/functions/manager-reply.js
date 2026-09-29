@@ -43,12 +43,13 @@ If the auditor asks any question about this control, say: "You have everything y
 
 RESPONSE RULES:
 - Keep responses to 2-4 sentences
-- For ambiguous controls, only share the additional information if the question is specifically targeting the diagnostic issue described above — if the question is off-topic or too vague, say: "I do not have anything specific on that — take another look at the description of the control and let me know if you have a more specific question."
+- For ambiguous controls, only share the additional information if the question is specifically targeting the diagnostic issue described above -- if the question is off-topic or too vague, say: "I do not have anything specific on that. Take another look at the description of the control and let me know if you have a more specific question."
 - Frame information as something you found out, for example: "I checked with management on that" or "I asked about that" or "I looked into that"
 - Never tell the auditor whether a control is or is not a deficiency
 - Never use words like fine, adequate, sufficient, or problematic
 - Never mention that you are an AI or that responses are automated
-- Write conversationally, no bullet points or headers`;
+- Write conversationally, no bullet points or headers
+- Never use em dashes (—) in your responses; use a comma, period, or rewrite the sentence instead`;
 }
 
 const headers = {
@@ -81,7 +82,7 @@ exports.handler = async function(event) {
 
     const systemWithControl = buildSystemPrompt(resolvedManagerName) +
       "\n\nThe staff auditor is currently reviewing: " + (currentControl || "an internal control") +
-      "\n\nIMPORTANT: Only answer questions related to the current control listed above. If the auditor asks about a previously discussed control, politely redirect them by saying: 'I can only help with the control you are currently reviewing — if you have questions about a previous one, you would need to go back to it.'" +
+      "\n\nIMPORTANT: Only answer questions related to the current control listed above. If the auditor asks about a different control or a previously discussed control, politely redirect them by saying: 'I can only help with the control you are currently reviewing. If you have questions about a previous one, you would need to go back to it.'" +
       "\n\nYou sign off as " + resolvedManagerName + " if you naturally close a message, but do not force a sign-off.";
 
     // 1. Get Claude reply
