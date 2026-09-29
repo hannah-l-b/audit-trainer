@@ -235,11 +235,6 @@
   .teams-messages::-webkit-scrollbar { width: 6px; }
   .teams-messages::-webkit-scrollbar-track { background: transparent; }
   .teams-messages::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
-
- /* Hide Netlify badge */
-  a[href*="netlify.com"] {
-    display: none !important;
-  }
 </style>
 </head>
 <body>
@@ -292,7 +287,7 @@
           <span class="msg-group-name" id="init-name">Laura Wardwell</span>
           <span class="msg-group-time" id="init-time"></span>
         </div>
-        <div class="msg-bubble" id="init-msg">Hi — I'm currently working on another client's audit, but send me a message if you need anything and I'll get back to you when I can.</div>
+        <div class="msg-bubble" id="init-msg">Hi, I'm currently working on another client's audit, but send me a message if you need anything and I'll get back to you when I can.</div>
       </div>
     </div>
 
@@ -476,11 +471,11 @@ async function sendMessage() {
   statusEl.textContent = 'Message sent — ' + MANAGER_NAME + ' may take a moment to respond, please wait.';
 
   // Brief pause before typing indicator appears (feels natural)
-  await new Promise(resolve => setTimeout(resolve, 1000 + Math.floor(Math.random() * 1000)));
+  await new Promise(resolve => setTimeout(resolve, 1000 + Math.floor(Math.random() * 2000)));
   setTyping(true);
 
-  // Typing indicator shows for 3-4 seconds while we fetch the reply
-  const typingDuration = 3000 + Math.floor(Math.random() * 1000);
+  // Typing indicator shows for 4-7 seconds while we fetch the reply
+  const typingDuration = 4000 + Math.floor(Math.random() * 6000);
 
   try {
     const [response] = await Promise.all([
@@ -510,7 +505,7 @@ async function sendMessage() {
   } catch (err) {
     await new Promise(resolve => setTimeout(resolve, typingDuration));
     setTyping(false);
-    appendMessage('Sorry for the delay — I was in the middle of something. Let me know if you have any other questions.', true);
+    appendMessage('Sorry for the delay. I was in the middle of something. Let me know if you have any other questions.', true);
     statusEl.textContent = '';
     console.error('Error:', err);
   }
