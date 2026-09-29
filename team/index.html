@@ -431,7 +431,7 @@
   <p class="end-sub">Here is how you finished.</p>
   <div class="score-display" id="final-score">0 <span>pts</span></div>
   <div class="final-lb" id="final-lb"></div>
-  <div class="record-note">📋 Please write down your combined team score and team leaderboard rank. Afterward, you can close the tab and move on to the next part of the study.</div>
+  <div class="record-note">📋 Please note your combined team score and team leaderboard rank before continuing to the next part of the study.</div>
   <div class="save-status" id="save-status">Saving results…</div>
 </div>
 <script>
@@ -460,15 +460,14 @@ const MISS_MESSAGES = [
 // Partner's pre-banked score added to participant's score for combined total
 const MANAGER_SCORE = 1850;
 // Each competing team starts at their own partner's pre-banked score
-// Your Team: starts at 1850 (partner pre-banked) + participant score
-// Good participant (~1000pts) brings Your Team to ~2850, competing for 3rd-4th
-// Strong participant (~1500pts) brings Your Team to ~3350, competing for 2nd-3rd
+// All competing teams start near 1850 (same as Your Team's partner pre-banked score)
+// so the leaderboard is tight from question 1 and stays competitive throughout
 const teamProfiles = [
-  {name:"Team 1", startScore:1500, avgGain:200, variance:35},
-  {name:"Team 2", startScore:1300, avgGain:170, variance:28},
-  {name:"Team 3", startScore:1100, avgGain:140, variance:22},
-  {name:"Team 4", startScore:850,  avgGain:110, variance:16},
-  {name:"Team 5", startScore:600,  avgGain:80,  variance:12}
+  {name:"Team 1", startScore:1950, avgGain:200, variance:35},
+  {name:"Team 2", startScore:1900, avgGain:170, variance:28},
+  {name:"Team 3", startScore:1850, avgGain:140, variance:22},
+  {name:"Team 4", startScore:1800, avgGain:110, variance:16},
+  {name:"Team 5", startScore:1750, avgGain:80,  variance:12}
 ];
 // Team accuracy rates — each "team" represents two players combined
 // Simulated using actual game mechanics (BASE_PTS * streak multiplier)
