@@ -97,6 +97,10 @@
   .save-status{font-size:0.8rem;color:var(--muted);margin-top:8px;}
   .save-status.ok{color:var(--correct-border);font-weight:600;}
   a[href*="netlify.com"]{display:none !important;}
+  /* Hide score from participants in no-competition condition */
+  #score-display-pill{display:none !important;}
+  #final-score{display:none !important;}
+  .record-note{display:none !important;}
 </style>
 </head>
 <body>
@@ -113,7 +117,7 @@
 </div>
 <div id="game-screen">
   <div class="stats-bar">
-    <div class="stat-pill">Score <strong id="score-display">0</strong></div>
+    <div class="stat-pill" id="score-display-pill">Score <strong id="score-display">0</strong></div>
     <div class="timer-wrap">
       <svg width="68" height="68" viewBox="0 0 68 68">
         <circle class="timer-bg" cx="34" cy="34" r="30"/>
@@ -142,7 +146,7 @@
   <p class="end-sub">Here is how you finished.</p>
   <div class="score-display" id="final-score">0 <span>pts</span></div>
   <div class="summary-box" id="summary-box"></div>
-  <div class="record-note">📋 Please write down your final score. Afterward, you can close the tab and move on to the next part of the study..</div>
+  <div class="record-note">📋 Please write down your final score before continuing to the next part of the study.</div>
   <div class="save-status" id="save-status">Saving results…</div>
 </div>
 <script>
@@ -289,7 +293,7 @@ function endGame(){
   document.getElementById('top-stripe').style.width='100%';
   const acc=Math.round((correctCount/questions.length)*100);
   const sb=document.getElementById('summary-box');
-  sb.innerHTML=`<div class="summary-header"><span>Your Results</span></div><div class="summary-row"><span class="summary-label">Questions answered</span><span class="summary-value">${questions.length}</span></div><div class="summary-row"><span class="summary-label">Correct answers</span><span class="summary-value">${correctCount} / ${questions.length}</span></div><div class="summary-row"><span class="summary-label">Accuracy</span><span class="summary-value">${acc}%</span></div><div class="summary-row"><span class="summary-label">Final score</span><span class="summary-value accent">${score} pts</span></div>`;
+  sb.innerHTML=`<div class="summary-header"><span>Your Results</span></div><div class="summary-row"><span class="summary-label">Questions answered</span><span class="summary-value">${questions.length}</span></div><div class="summary-row"><span class="summary-label">Correct answers</span><span class="summary-value">${correctCount} / ${questions.length}</span></div><div class="summary-row"><span class="summary-label">Accuracy</span><span class="summary-value">${acc}%</span></div>`;
   const payload={condition:CONDITION,participantId:new URLSearchParams(window.location.search).get('pid')||'N/A',finalScore:score,correctAnswers:correctCount,totalQuestions:questions.length,accuracy:acc,maxStreak,totalTime:Math.round((Date.now()-gameStart)/1000),timedOut:timedOutCount,questionOrder:questionOrder,questions:qLog};
   fetch('/.netlify/functions/save-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(r=>r.json())
