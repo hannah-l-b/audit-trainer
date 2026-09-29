@@ -409,7 +409,7 @@
     <div class="q-text" id="q-text"></div>
   </div>
   <div class="reading-bar-wrap" id="reading-bar-wrap">
-    <div class="reading-label" id="reading-label">Read the question — answers appear in 10s</div>
+    <div class="reading-label" id="reading-label">Read the question — answers appear in 5s</div>
     <div class="reading-bar"><div class="reading-bar-fill" id="reading-bar-fill" style="width:0%"></div></div>
   </div>
   <div class="answers hidden" id="answers"></div>
@@ -475,20 +475,20 @@ const teamAccuracy = [0.96, 0.85, 0.72, 0.55, 0.35];
 
 let teamGains = [];
 function initTeamGains(){
+  // Each competing team's startScore = their partner's pre-banked score.
+  // Gains simulate only ONE player (the team's "participant equivalent") per question,
+  // so max team score = startScore + ~2200, matching the real maximum of 4400.
   teamGains = teamProfiles.map((p,idx)=>{
     let gains=[];
     let pStreak=0;
     for(let i=0;i<10;i++){
+      const teamMistakeChances = [0.18, 0.14, 0.1, 0.07, 0.04];
+      const mistakeChance=teamMistakeChances[idx]||0;
+      const hasMistake=Math.random()<mistakeChance;
+      const correct=!hasMistake&&(Math.random()<teamAccuracy[idx]);
       let qScore=0;
-      for(let member=0;member<2;member++){
-        // All teams can make surprise mistakes — higher for top teams
-        const teamMistakeChances = [0.18, 0.14, 0.1, 0.07, 0.04];
-        const mistakeChance=teamMistakeChances[idx]||0;
-        const hasMistake=Math.random()<mistakeChance;
-        const correct=!hasMistake&&(Math.random()<teamAccuracy[idx]);
-        if(correct){ qScore+=Math.round(BASE_PTS*mult(pStreak)); pStreak++; }
-        else { pStreak=0; }
-      }
+      if(correct){ qScore=Math.round(BASE_PTS*mult(pStreak)); pStreak++; }
+      else { pStreak=0; }
       gains.push(qScore);
     }
     return {name:p.name, gains, start:p.startScore};
