@@ -2,9 +2,9 @@
 // Evaluates attention check answers and returns pass/fail flags
 //
 // Query parameters:
-//   ac1      — selected choice recode value for question 1 (correct = 2)
-//   ac2      — selected choice recode value for question 2 (correct = 4)
-//   ac3      — selected choice recode value for question 3 (correct depends on manager)
+//   ac1      — selected choice text for question 1
+//   ac2      — selected choice text for question 2
+//   ac3      — selected choice text for question 3 (manager name)
 //   manager  — manager name assigned to participant
 
 const headers = {
@@ -13,30 +13,25 @@ const headers = {
   "Content-Type": "application/json"
 };
 
-const MANAGER_CORRECT = {
-  "Laura Wardwell": "1",
-  "Yeyang Zhou":    "2",
-  "Jinhua Sun":     "3",
-  "Brent Myers":    "4",
-  "Andrew Zilles":  "5"
-};
-
 exports.handler = async function(event) {
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 200, headers, body: "" };
   }
 
-  const params = event.queryStringParameters || {};
+  const params  = event.queryStringParameters || {};
   const ac1     = String(params.ac1     || "").trim();
   const ac2     = String(params.ac2     || "").trim();
   const ac3     = String(params.ac3     || "").trim();
-  const manager = (params.manager || "").trim();
+  const manager = String(params.manager || "").trim();
 
-  const correctAc3 = MANAGER_CORRECT[manager] || null;
+  // AC1: correct answer contains this unique phrase
+  const fail1 = ac1.includes("training exercise to test audit procedure knowledge") ? "0" : "1";
 
-  const fail1 = ac1 !== "2"                          ? "1" : "0";
-  const fail2 = ac2 !== "4"                          ? "1" : "0";
-  const fail3 = (!correctAc3 || ac3 !== correctAc3)  ? "1" : "0";
+  // AC2: correct answer contains this unique phrase
+  const fail2 = ac2.includes("All participants receive course extra credit") ? "0" : "1";
+
+  // AC3: correct answer is the participant's assigned manager name
+  const fail3 = (manager && ac3.trim() === manager.trim()) ? "0" : "1";
 
   return {
     statusCode: 200,
