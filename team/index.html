@@ -570,6 +570,11 @@ const LABELS = ['A','B','C','D'];
 let cQ=0, score=0, streak=0, maxStreak=0, correctCount=0, timedOutCount=0;
 let answered=false, timerInt=null, timeLeft=TIMER_SEC, readInt=null, readTimeLeft=10, qStart=null, gameStart=null, qLog=[], questionOrder=[];
 let prevRank = null;
+let tabSwitches=0, timeAwayMs=0, tabHiddenAt=null;
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){ tabHiddenAt=Date.now(); tabSwitches++; }
+  else { if(tabHiddenAt!==null){ timeAwayMs+=Date.now()-tabHiddenAt; tabHiddenAt=null; } }
+});
 function mult(s){
   if(s>=9) return 3.5;
   if(s>=7) return 3;
@@ -852,7 +857,7 @@ function endGame(){
   });
   html+=`<div style="padding:12px 20px;font-size:0.8rem;color:var(--muted);border-top:1px solid var(--border)">Your team rank: <strong style="color:var(--accent)">#${rank} of ${all.length}</strong> &nbsp;|&nbsp; Your score: <strong style="color:var(--accent)">${score}</strong> &nbsp;|&nbsp; Partner's score: <strong style="color:var(--accent)">${MANAGER_SCORE}</strong></div>`;
   flb.innerHTML=html;
-  const payload={condition:CONDITION,participantId:new URLSearchParams(window.location.search).get('pid')||'N/A',finalScore:score,correctAnswers:correctCount,totalQuestions:questions.length,accuracy:Math.round((correctCount/questions.length)*100),maxStreak,totalTime:Math.round((Date.now()-gameStart)/1000),timedOut:timedOutCount,questionOrder:questionOrder,questions:qLog,partnerScore:MANAGER_SCORE,combinedScore:MANAGER_SCORE+score};
+  const payload={condition:CONDITION,participantId:new URLSearchParams(window.location.search).get('pid')||'N/A',finalScore:score,correctAnswers:correctCount,totalQuestions:questions.length,accuracy:Math.round((correctCount/questions.length)*100),maxStreak,totalTime:Math.round((Date.now()-gameStart)/1000),timedOut:timedOutCount,questionOrder:questionOrder,questions:qLog,partnerScore:MANAGER_SCORE,combinedScore:MANAGER_SCORE+score,tabSwitches,timeAwayMs};
   fetch('/.netlify/functions/save-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(r=>r.json())
     .then(d=>{const s=document.getElementById('save-status');if(d.result==='success'){s.textContent='✓ Results saved.';s.className='save-status ok';}else{s.textContent='Results could not be saved automatically.';}})
