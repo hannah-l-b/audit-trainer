@@ -197,6 +197,11 @@ const LABELS=['A','B','C','D'];
 let cQ=0,score=0,streak=0,maxStreak=0,correctCount=0,timedOutCount=0;
 let answered=false,timerInt=null,readInt=null,timeLeft=TIMER_SEC,readTimeLeft=5;
 let qStart=null,gameStart=null,qLog=[];
+let tabSwitches=0,timeAwayMs=0,tabHiddenAt=null;
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){ tabHiddenAt=Date.now(); tabSwitches++; }
+  else { if(tabHiddenAt!==null){ timeAwayMs+=Date.now()-tabHiddenAt; tabHiddenAt=null; } }
+});
 function mult(s){if(s>=9)return 3.5;if(s>=7)return 3;if(s>=5)return 2.5;if(s>=3)return 2;if(s>=2)return 1.5;return 1;}
 function startGame(){buildQuestions();gameStart=Date.now();document.getElementById('start-screen').style.display='none';document.getElementById('game-screen').style.display='block';loadQ();}
 function loadQ(){
@@ -294,7 +299,7 @@ function endGame(){
   const acc=Math.round((correctCount/questions.length)*100);
   const sb=document.getElementById('summary-box');
   sb.innerHTML=`<div class="summary-header"><span>Your Results</span></div><div class="summary-row"><span class="summary-label">Questions answered</span><span class="summary-value">${questions.length}</span></div><div class="summary-row"><span class="summary-label">Correct answers</span><span class="summary-value">${correctCount} / ${questions.length}</span></div><div class="summary-row"><span class="summary-label">Accuracy</span><span class="summary-value">${acc}%</span></div>`;
-  const payload={condition:CONDITION,participantId:new URLSearchParams(window.location.search).get('pid')||'N/A',finalScore:score,correctAnswers:correctCount,totalQuestions:questions.length,accuracy:acc,maxStreak,totalTime:Math.round((Date.now()-gameStart)/1000),timedOut:timedOutCount,questionOrder:questionOrder,questions:qLog};
+  const payload={condition:CONDITION,participantId:new URLSearchParams(window.location.search).get('pid')||'N/A',finalScore:score,correctAnswers:correctCount,totalQuestions:questions.length,accuracy:acc,maxStreak,totalTime:Math.round((Date.now()-gameStart)/1000),timedOut:timedOutCount,questionOrder:questionOrder,questions:qLog,tabSwitches,timeAwayMs};
   fetch('/.netlify/functions/save-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(r=>r.json())
     .then(d=>{const s=document.getElementById('save-status');if(d.result==='success'){s.textContent='✓ Results saved.';s.className='save-status ok';}else{s.textContent='Results could not be saved automatically.';}})
