@@ -78,3 +78,4 @@ Add `?pid=${e://Field/ResponseID}` to each game URL so each session is tagged wi
 ## Downloading your data
 
 Go to your Supabase project → Table Editor → results → click the download button to export as CSV.
+
