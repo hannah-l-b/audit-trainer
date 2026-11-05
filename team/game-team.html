@@ -394,6 +394,7 @@
     <div class="meta-item"><span class="num">30s</span><span class="lbl">Per question</span></div>
     <div class="meta-item"><span class="num">3.5×</span><span class="lbl">Max multiplier</span></div>
   </div>
+  <div style="margin-bottom:16px;font-size:0.8rem;font-weight:600;color:#92400E;background:rgba(184,146,42,0.08);border:1px solid rgba(184,146,42,0.3);border-radius:8px;padding:10px 16px;">👥 Note: Your team's combined performance will be visible to your manager and compared against all other teams.</div>
   <button class="btn-primary" onclick="startGame()">Begin exercise</button>
 </div>
 <!-- GAME -->
@@ -421,6 +422,7 @@
   <div class="q-card">
     <div class="q-eyebrow" id="q-eyebrow">Question 1 of 17</div>
     <div class="q-text" id="q-text"></div>
+    <div style="margin-top:10px;font-size:0.75rem;color:#92400E;font-weight:600;opacity:0.8;">👥 Your responses affect your team's standing.</div>
   </div>
   <div class="reading-bar-wrap" id="reading-bar-wrap">
     <div class="reading-label" id="reading-label">Read the question — answers appear in 6s</div>
@@ -436,6 +438,7 @@
   <div class="lb-overlay-title">Leaderboard</div>
   <div class="lb-overlay-sub" id="lb-overlay-sub">After question 1</div>
   <div id="rank-drop-warning" style="display:none;font-size:0.8rem;font-weight:700;color:#991B1B;background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.3);border-radius:8px;padding:8px 16px;margin-bottom:12px;">⚠️ <span id="rank-drop-text"></span></div>
+  <div id="lb-ticker" style="display:none;font-size:0.8rem;font-weight:600;color:#92400E;background:rgba(184,146,42,0.08);border:1px solid rgba(184,146,42,0.3);border-radius:8px;padding:8px 16px;margin-bottom:12px;">👥 <span id="lb-ticker-text"></span></div>
   <div class="lb-cards" id="lb-cards"></div>
   <button class="lb-continue" id="lb-continue" onclick="nextQuestion()">Continue →</button>
 </div>
@@ -802,6 +805,22 @@ function showLeaderboard(){
     dropText.textContent=`Your team moved from #${prevRank} to #${newRank} — keep working together.`;
     dropWarn.style.display='';
   } else { dropWarn.style.display='none'; }
+
+  // Ticker — show social obligation message on wrong answers
+  const TEAM_MISS_MESSAGES = [
+    "Your partner is counting on you.",
+    "Every miss affects your team's standing.",
+    "Your team's combined score has been updated.",
+    "Your partner is counting on accurate responses.",
+    "This response has been recorded for your team."
+  ];
+  const ticker=document.getElementById('lb-ticker');
+  const tickerText=document.getElementById('lb-ticker-text');
+  const lastEntry=qLog[qLog.length-1];
+  if(lastEntry && !lastEntry.wasCorrect){
+    tickerText.textContent=TEAM_MISS_MESSAGES[Math.floor(Math.random()*TEAM_MISS_MESSAGES.length)];
+    ticker.style.display='';
+  } else { ticker.style.display='none'; }
 
   function rankClass(i){ return i===0?'gold':i===1?'silver':i===2?'bronze':''; }
 
