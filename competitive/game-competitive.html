@@ -484,6 +484,7 @@
   <div class="lb-overlay-title">Leaderboard</div>
   <div class="lb-overlay-sub" id="lb-overlay-sub">After question 1</div>
   <div id="rank-drop-warning" style="display:none;font-size:0.8rem;font-weight:700;color:#991B1B;background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.3);border-radius:8px;padding:8px 16px;margin-bottom:12px;">⚠️ <span id="rank-drop-text"></span></div>
+  <div id="lb-ticker" style="display:none;font-size:0.8rem;font-weight:600;color:#92400E;background:rgba(184,146,42,0.08);border:1px solid rgba(184,146,42,0.3);border-radius:8px;padding:8px 16px;margin-bottom:12px;">👔 <span id="lb-ticker-text"></span></div>
   <div class="lb-cards" id="lb-cards"></div>
   <button class="lb-continue" id="lb-continue" onclick="nextQuestion()">Continue →</button>
 </div>
@@ -846,6 +847,15 @@ function showLeaderboard(){
     dropText.textContent=`You dropped from #${prevRank} to #${newRank} — your manager will see this.`;
     dropWarn.style.display='';
   } else { dropWarn.style.display='none'; }
+
+  // Ticker — show manager surveillance message if last answer was wrong
+  const ticker=document.getElementById('lb-ticker');
+  const tickerText=document.getElementById('lb-ticker-text');
+  const lastEntry=qLog[qLog.length-1];
+  if(lastEntry && !lastEntry.wasCorrect){
+    tickerText.textContent=MISS_MESSAGES[Math.floor(Math.random()*MISS_MESSAGES.length)];
+    ticker.style.display='';
+  } else { ticker.style.display='none'; }
 
   function rankClass(i){ return i===0?'gold':i===1?'silver':i===2?'bronze':''; }
 
