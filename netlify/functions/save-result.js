@@ -66,7 +66,7 @@ exports.handler = async function(event) {
       time_away_ms:     data.timeAwayMs ?? 0
     };
 
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/results`, {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/results_prolific`, {
       method: "POST",
       headers: {
         "Content-Type":  "application/json",
