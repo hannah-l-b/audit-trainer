@@ -494,7 +494,7 @@ const TIMER_SEC = 30;
 
 // Read manager name from URL param (passed by Qualtrics as ?manager=...)
 // Qualtrics pipe syntax in the survey link: ?pid=${e://Field/ResponseID}&manager=${e://Field/ManagerName}
-const MANAGER_NAME = new URLSearchParams(window.location.search).get('manager') || 'D. Morgan';
+const MANAGER_NAME = new URLSearchParams(window.location.search).get('manager') || 'Laura Wardwell';
 document.addEventListener('DOMContentLoaded', () => {
   ['mgr-name-intro','mgr-name-modal'].forEach(id => {
     const el = document.getElementById(id);
@@ -1045,6 +1045,9 @@ function endGame(){
   // Save to Netlify
   const finalMgrScoreForPayload=getManagerScore(9);
   const payload={condition:CONDITION,participantId:new URLSearchParams(window.location.search).get('pid')||'N/A',managerName:MANAGER_NAME,participantScore:score,managerScore:finalMgrScoreForPayload,combinedScore:score+finalMgrScoreForPayload,finalScore:score,correctAnswers:correctCount,totalQuestions:questions.length,accuracy:Math.round((correctCount/questions.length)*100),maxStreak,totalTime:Math.round((Date.now()-gameStart)/1000),timedOut:timedOutCount,questionOrder:questionOrder,questions:qLog,tabSwitches,timeAwayMs};
+  // Store score + condition for Teams chat to read (same Netlify domain = shared localStorage)
+  try { localStorage.setItem('participantScore', score); localStorage.setItem('participantCondition', CONDITION); } catch(e){}
+
   fetch('/.netlify/functions/save-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(r=>r.json())
     .then(d=>{const s=document.getElementById('save-status');if(d.result==='success'){s.textContent='✓ Results saved.';s.className='save-status ok';}else{s.textContent='Results could not be saved automatically.';}})
