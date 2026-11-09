@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Audit Training Exercise</title>
+<title>Audit Procedure Assessment</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -350,21 +350,28 @@
   }
   .lb-rank-arrow.up   { background: rgba(22,163,74,0.2); color: #4ADE80; }
   .lb-rank-arrow.same { background: rgba(100,116,139,0.2); color: #94A3B8; }
+  .lb-score-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+  .lb-round-gain {
+    font-size: 0.65rem; font-weight: 700; color: #4ADE80;
+    font-variant-numeric: tabular-nums; min-height: 12px;
+  }
+  .lb-round-gain.zero { color: #64748B; }
   .lb-card-score {
     font-size: 1rem; font-weight: 800;
     font-variant-numeric: tabular-nums;
     color: #EEF2F7;
   }
   .lb-card.you .lb-card-score { color: var(--accent-light); }
+  .lb-gap-note { font-size: 0.7rem; color: #FDE68A; margin-top: 2px; font-weight: 600; }
   .lb-continue {
     margin-top: 28px; background: var(--accent); color: #fff;
     border: none; padding: 14px 48px; font-family: 'Inter', sans-serif;
     font-size: 0.95rem; font-weight: 700; border-radius: 100px;
     cursor: pointer; transition: all 0.2s;
-    opacity: 0; transform: translateY(10px);
+    opacity: 0; transform: translateY(10px); pointer-events: none;
     box-shadow: 0 4px 14px rgba(184,146,42,0.4);
   }
-  .lb-continue.visible { opacity: 1; transform: translateY(0); transition: all 0.4s ease 0.1s; }
+  .lb-continue.visible { opacity: 1; transform: translateY(0); transition: all 0.4s ease 0.1s; pointer-events: auto; }
   .lb-continue:hover { background: var(--accent-light); transform: translateY(-2px); }
   /* ── END SCREEN ── */
   #end-screen {
@@ -415,27 +422,50 @@
   .save-status { font-size: 0.8rem; color: var(--muted); margin-top: 8px; }
   .save-status.ok { color: var(--correct); font-weight: 600; }
   a[href*="netlify.com"] { display: none !important; }
+  .feedback-row.wrong {
+    background: var(--wrong-bg); color: #991B1B;
+    border: 2px solid #DC2626;
+    font-size: 1.05rem; padding: 16px 22px;
+    box-shadow: 0 0 0 4px rgba(220,38,38,0.12);
+    flex-direction: column; align-items: flex-start; gap: 6px;
+  }
+  .feedback-wrong-main { font-size: 1.05rem; font-weight: 700; }
+  .feedback-wrong-note { font-size: 0.875rem; font-weight: 600; color: #7F1D1D; letter-spacing: 0.01em; }
 </style>
 </head>
 <body>
 <div id="top-stripe"></div>
 <!-- START -->
 <div id="start-screen">
-  <div class="brand-tag">Audit Training Exercise</div>
+  <div class="brand-tag">Audit Procedure Assessment</div>
   <h1>Test your audit procedure knowledge</h1>
-  <p>Compete for the top score on the leaderboard! A <strong>30-second timer</strong> runs for each question. Answer accurately and build your streak to multiply your score — the higher your streak, the more points you earn!</p>
+  <p>Compete for the top score on the leaderboard. Answer accurately and build your streak to multiply your score.</p>
   <div class="meta-row">
     <div class="meta-item"><span class="num">10</span><span class="lbl">Questions</span></div>
+    <div class="meta-item"><span class="num">7s</span><span class="lbl">Read time</span></div>
     <div class="meta-item"><span class="num">30s</span><span class="lbl">Per question</span></div>
     <div class="meta-item"><span class="num">3.5×</span><span class="lbl">Max multiplier</span></div>
   </div>
-  <button class="btn-primary" onclick="startGame()">Begin exercise</button>
+  <div style="background:rgba(220,38,38,0.06);border:1.5px solid rgba(220,38,38,0.35);border-radius:10px;padding:16px 20px;margin-bottom:20px;text-align:left;">
+    <div style="font-size:0.8rem;font-weight:700;color:#991B1B;margin-bottom:6px;">👔 Before you begin — please read carefully</div>
+    <div style="font-size:0.8rem;color:#7F1D1D;line-height:1.6;">Your engagement manager will review your individual score and leaderboard ranking from this exercise before you begin the audit task. <strong>Participants who score below the group average will be flagged for additional review.</strong></div>
+    <label style="display:flex;align-items:center;gap:10px;margin-top:12px;cursor:pointer;font-size:0.8rem;font-weight:600;color:#991B1B;">
+      <input type="checkbox" id="ack-check" onchange="document.getElementById('btn-begin').disabled=!this.checked" style="width:16px;height:16px;cursor:pointer;">
+      I understand my manager will see my individual score and ranking.
+    </label>
+  </div>
+  <button class="btn-primary" id="btn-begin" onclick="startGame()" disabled>Begin exercise</button>
 </div>
 <!-- GAME -->
 <div id="game-screen">
   <div class="stats-bar">
-    <div class="stat-pill score-wrap">
-      Score <strong id="score-display">0</strong>
+    <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;">
+      <div class="stat-pill score-wrap">
+        Score <strong id="score-display">0</strong>
+      </div>
+      <div class="stat-pill" id="rank-pill" style="display:none;background:rgba(184,146,42,0.15);border:1px solid rgba(184,146,42,0.4);color:#92400E;font-size:0.8rem;font-weight:700;padding:4px 12px;border-radius:20px;">
+        Rank <strong id="rank-pill-num">—</strong>
+      </div>
     </div>
     <div class="timer-wrap">
       <svg width="68" height="68" viewBox="0 0 68 68">
@@ -457,7 +487,7 @@
     <div class="q-text" id="q-text"></div>
   </div>
   <div class="reading-bar-wrap" id="reading-bar-wrap">
-    <div class="reading-label" id="reading-label">Read the question — answers appear in 6s</div>
+    <div class="reading-label" id="reading-label">Read the question — answers appear in 7s</div>
     <div class="reading-bar"><div class="reading-bar-fill" id="reading-bar-fill" style="width:0%"></div></div>
   </div>
   <div class="answers hidden" id="answers"></div>
@@ -469,19 +499,22 @@
 <div id="lb-overlay">
   <div class="lb-overlay-title">Leaderboard</div>
   <div class="lb-overlay-sub" id="lb-overlay-sub">After question 1</div>
+  <div id="lb-ticker" style="display:none;font-size:0.85rem;font-weight:700;color:#FDE68A;background:rgba(184,146,42,0.18);border:1px solid rgba(184,146,42,0.45);border-radius:8px;padding:10px 18px;margin-bottom:12px;">👔 <span id="lb-ticker-text"></span></div>
   <div class="lb-cards" id="lb-cards"></div>
   <button class="lb-continue" id="lb-continue" onclick="nextQuestion()">Continue →</button>
 </div>
 <!-- END -->
 <div id="end-screen">
   <div class="end-eyebrow">Exercise complete</div>
-  <h2>Well done.</h2>
+  <h2>Exercise complete.</h2>
+  <div style="background:rgba(184,146,42,0.1);border:1px solid rgba(184,146,42,0.35);border-radius:10px;padding:12px 20px;margin-bottom:20px;font-size:0.875rem;font-weight:600;color:#92400E;">👔 Your results have been submitted to your engagement team and will be reviewed by your manager.</div>
   <p class="end-sub">Here is how you finished.</p>
   <div class="score-display" id="final-score">0 <span>pts</span></div>
   <div class="final-lb" id="final-lb"></div>
-  <div class="record-note">📋 Please note your final score before continuing to the next part of the study.</div>
-  <div class="record-note" style="margin-top:8px">↩️ When you are ready, please return to the Qualtrics survey to continue the study.</div>
-  <div class="save-status" id="save-status">Saving results…</div>
+  <div id="rank-display" style="display:none;background:rgba(184,146,42,0.1);border:1px solid rgba(184,146,42,0.4);border-radius:10px;padding:14px 20px;margin-bottom:12px;font-size:0.95rem;font-weight:600;color:#92400E;text-align:center;"></div>
+  <div id="average-status" style="display:none;border-radius:10px;padding:12px 20px;margin-bottom:12px;font-size:0.875rem;font-weight:600;text-align:center;"></div>
+  <div class="record-note">↩️ When you are ready, please return to the Qualtrics survey to continue the study.</div>
+  <div class="save-status" id="save-status"></div>
 </div>
 <script>
 const CONDITION = "competitive";
@@ -489,26 +522,26 @@ const TIMER_SEC = 30;
 const BASE_PTS  = 100;
 const CIRC      = 188.5;
 const STREAK_MESSAGES = {
-  2:  {msg:"Nice! 2 in a row — 1.5× multiplier active! 💪",          cls:""},
-  3:  {msg:"3-question streak! 2× multiplier — you're on a roll! 🔥", cls:""},
-  4:  {msg:"Four in a row! 2× multiplier — don't break it! 🔥🔥",    cls:""},
-  5:  {msg:"ON FIRE! 2.5× multiplier activated! 🔥🔥🔥",              cls:"fire"},
-  6:  {msg:"INCREDIBLE! 2.5× — you're climbing! 🔥🔥🔥",              cls:"fire"},
-  7:  {msg:"UNSTOPPABLE! 3× MULTIPLIER! 🔥🔥🔥🔥",                    cls:"fire"},
-  8:  {msg:"LEGENDARY! 3× — you're dominating! 🔥🔥🔥🔥",            cls:"fire"},
-  9:  {msg:"UNREAL! 3.5× MULTIPLIER — PERFECT STREAK! 🏆🔥🔥🔥🔥",   cls:"fire"},
-  10: {msg:"FLAWLESS! 3.5× — ALL 10 CORRECT! YOU WIN! 🏆🔥🔥🔥🔥",   cls:"fire"}
+  2:  {msg:"2 in a row — stay sharp.",          cls:""},
+  3:  {msg:"3-question streak — keep going.",    cls:""},
+  4:  {msg:"4 in a row — don't break it.",       cls:""},
+  5:  {msg:"5-streak — you're ahead. Hold it.",  cls:"fire"},
+  6:  {msg:"6 in a row — maintain your lead.",   cls:"fire"},
+  7:  {msg:"7-streak — don't slip now.",         cls:"fire"},
+  8:  {msg:"8 in a row — stay focused.",         cls:"fire"},
+  9:  {msg:"9-streak — near perfect.",           cls:"fire"},
+  10: {msg:"Flawless — 10 in a row.",            cls:"fire"}
 };
 const MISS_MESSAGES = [
-  "Streak broken! Refocus — you can still climb back up! 💪",
-  "Oops! Don't let that knock you off the leaderboard! 😤",
-  "Streak gone — but you can still climb back! 🚀",
-  "That one hurt! Stay sharp for the next one! ⚡",
-  "Shake it off — every question is a fresh chance! 💥"
+  "Your manager is tracking your progress.",
+  "This response has been logged.",
+  "Performance recorded.",
+  "Your manager is reviewing all responses.",
+  "This response has been logged."
 ];
 // Dynamic player profiles — everyone starts at 0, scores build question by question
-// Final scores approx over 10 questions: A.Mitchell ~1200, J.Torres ~1000, C.Reynolds ~800, R.Sanders ~550, M.Liu ~280
-// Max possible score ~2200pts (all 10 correct with full streak multipliers)
+// Final scores approx over 10 questions: A.Mitchell ~1700, J.Torres ~1300, C.Reynolds ~900, R.Sanders ~500, M.Liu ~200
+// Max possible score ~2450pts (all 10 correct with full streak multipliers)
 // Strong participant (~9/10 correct with streaks) can take 1st
 // Poor participant (~2/10 correct) can beat M.Liu
 const playerProfiles = [
@@ -518,10 +551,9 @@ const playerProfiles = [
   {name:"R. Sanders",  avgGain:55,  variance:13},
   {name:"M. Liu",      avgGain:28,  variance:8}
 ];
-// Pre-generate per-question gains at game start so leaderboard feels live
-// Accuracy rates per player — used to simulate realistic scores using actual game mechanics
-// Accuracy rates — calibrated for extended multiplier system
-const playerAccuracy = [0.96, 0.85, 0.72, 0.55, 0.35];
+// Accuracy rates — higher players get fewer surprise mistakes so streaks build realistically
+const playerAccuracy =    [0.90, 0.82, 0.74, 0.65, 0.55];
+const playerMistakeChance=[0.04, 0.07, 0.10, 0.12, 0.15];
 
 let playerGains = [];
 function initPlayerGains(){
@@ -529,10 +561,7 @@ function initPlayerGains(){
     let gains = [];
     let pStreak = 0;
     for(let i=0;i<10;i++){
-      // Everyone can make surprise mistakes — higher for top scorers
-      const mistakeChances = [0.18, 0.14, 0.1, 0.07, 0.04];
-      const mistakeChance = mistakeChances[idx] || 0;
-      const hasMistake = Math.random() < mistakeChance;
+      const hasMistake = Math.random() < playerMistakeChance[idx];
       const correct = !hasMistake && (Math.random() < playerAccuracy[idx]);
       if(correct){
         const m = mult(pStreak);
@@ -555,9 +584,10 @@ function getCurrentStandings(participantScore, upToQuestion){
   const players = playerGains.map((p,i)=>({
     name:p.name,
     score:getPlayerScore(i, upToQuestion),
+    roundGain: p.gains[upToQuestion] ?? 0,
     you:false
   }));
-  players.push({name:'You', score:participantScore, you:true});
+  players.push({name:'You', score:participantScore, roundGain: lastQPts, you:true});
   players.sort((a,b)=>b.score-a.score);
   return players;
 }
@@ -621,6 +651,8 @@ const LABELS = ['A','B','C','D'];
 let cQ=0, score=0, streak=0, maxStreak=0, correctCount=0, timedOutCount=0;
 let answered=false, timerInt=null, timeLeft=TIMER_SEC, readInt=null, readTimeLeft=10, qStart=null, gameStart=null, qLog=[], questionOrder=[];
 let prevRank = null;
+let prevStandings = {}; // name → 1-indexed rank from previous leaderboard
+let lastQPts = 0;       // pts earned on last question (for "You" roundGain)
 let tabSwitches=0, timeAwayMs=0, tabHiddenAt=null;
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){ tabHiddenAt=Date.now(); tabSwitches++; }
@@ -662,11 +694,15 @@ function loadQ(){
   updateStreak(false);
   const c=document.getElementById('answers');
   c.innerHTML='';
-  q.options.forEach((opt,i)=>{
+  // Shuffle answer order; track which shuffled index is correct
+  const indices=shuffle([0,1,2,3].slice(0,q.options.length));
+  const shuffledCorrect=indices.indexOf(q.correct);
+  q._shuffledCorrect=shuffledCorrect;
+  indices.forEach((origIdx,dispIdx)=>{
     const btn=document.createElement('button');
     btn.className='ans-btn';
-    btn.innerHTML=`<span class="ans-indicator"></span><span class="ans-content"><span class="ans-label">${LABELS[i]}</span><span class="ans-text">${opt}</span></span>`;
-    btn.onclick=()=>selectAns(i);
+    btn.innerHTML=`<span class="ans-indicator"></span><span class="ans-content"><span class="ans-label">${LABELS[dispIdx]}</span><span class="ans-text">${q.options[origIdx]}</span></span>`;
+    btn.onclick=()=>selectAns(dispIdx);
     c.appendChild(btn);
   });
   startReadingPhase();
@@ -706,18 +742,18 @@ function startReadingPhase(){
   wrap.classList.add('visible');
   answers.classList.add('hidden');
   fill.style.width='0%';
-  readTimeLeft=6;
+  readTimeLeft=7;
   clearInterval(readInt);
   readInt=setInterval(()=>{
     readTimeLeft--;
-    const pct=((6-readTimeLeft)/6)*100;
+    const pct=((7-readTimeLeft)/7)*100;
     fill.style.width=pct+'%';
     if(readTimeLeft<=6) label.textContent=`Answers appear in ${readTimeLeft}s…`;
     if(readTimeLeft<=0){
       clearInterval(readInt);
       wrap.classList.remove('visible');
       answers.classList.remove('hidden');
-      label.textContent='Read the question — answers appear in 6s';
+      label.textContent='Read the question — answers appear in 7s';
       startTimer();
     }
   },1000);
@@ -761,20 +797,18 @@ function selectAns(idx){
   clearInterval(readInt);
   const taken=Math.round((Date.now()-qStart)/1000);
   const q=questions[cQ];
+  const correctIdx=q._shuffledCorrect;
   const btns=document.querySelectorAll('.ans-btn');
   btns.forEach(b=>b.disabled=true);
   const fb=document.getElementById('feedback');
   let ok=false;
-  if(idx===q.correct){
+  if(idx===correctIdx){
     btns[idx].classList.add('correct');
     const m=mult(streak);
     const pts=Math.round(BASE_PTS*m);
+    lastQPts=pts;
     score+=pts; streak++; maxStreak=Math.max(maxStreak,streak); correctCount++; ok=true;
-    if(m>1){
-      fb.innerHTML=`✓ &nbsp;Correct! &nbsp;<strong>+${pts} pts</strong> &nbsp;<span style="color:var(--accent);font-size:0.85rem">(${m}× streak bonus!)</span>`;
-    } else {
-      fb.innerHTML=`✓ &nbsp;Correct! &nbsp;<strong>+${pts} pts</strong>`;
-    }
+    fb.innerHTML=`✓ &nbsp;Correct! &nbsp;<strong>+${pts} pts</strong>`;
     fb.className='feedback-row correct';
     animateScore(pts, m>1);
     document.getElementById('score-display').textContent=score;
@@ -783,16 +817,13 @@ function selectAns(idx){
     else { setStreakMsg('', ''); }
   } else {
     btns[idx].classList.add('wrong');
-    btns[q.correct].classList.add('reveal');
+    btns[correctIdx].classList.add('reveal');
     const hadStreak=streak;
+    lastQPts=0;
     streak=0;
     fb.className='feedback-row wrong';
-    if(hadStreak>=2){
-      fb.innerHTML=`✗ &nbsp;Incorrect! &nbsp;<span style="font-size:0.85rem">Streak of ${hadStreak} broken!</span>`;
-    } else {
-      fb.innerHTML='✗ &nbsp;Incorrect.';
-    }
-    setStreakMsg(MISS_MESSAGES[Math.floor(Math.random()*MISS_MESSAGES.length)], 'wrong');
+    fb.innerHTML=`<span class="feedback-wrong-main">✗ &nbsp;Incorrect.${hadStreak>=2?' &nbsp;<span style="font-size:0.9rem">Streak of '+hadStreak+' broken!</span>':''}</span>`;
+    setStreakMsg('', '');
   }
   qLog.push({answerChosen:LABELS[idx],wasCorrect:ok,timeTaken:taken,timedOut:false});
   updateStreak(ok);
@@ -802,19 +833,17 @@ function expire(){
   answered=true;
   clearInterval(readInt);
   const q=questions[cQ];
+  const correctIdx=q._shuffledCorrect;
   const btns=document.querySelectorAll('.ans-btn');
   btns.forEach(b=>b.disabled=true);
-  btns[q.correct].classList.add('reveal');
+  btns[correctIdx].classList.add('reveal');
   const hadStreak=streak;
+  lastQPts=0;
   streak=0; timedOutCount++;
   const fb=document.getElementById('feedback');
   fb.className='feedback-row wrong';
-  if(hadStreak>=2){
-    fb.innerHTML=`⏰ &nbsp;Time's up! &nbsp;<span style="font-size:0.85rem">Streak of ${hadStreak} broken!</span>`;
-  } else {
-    fb.innerHTML="⏰ &nbsp;Time's up!";
-  }
-  setStreakMsg(MISS_MESSAGES[Math.floor(Math.random()*MISS_MESSAGES.length)], 'wrong');
+  fb.innerHTML=`<span class="feedback-wrong-main">⏰ &nbsp;Time's up!${hadStreak>=2?' &nbsp;<span style="font-size:0.9rem">Streak of '+hadStreak+' broken!</span>':''}</span>`;
+  setStreakMsg('', '');
   qLog.push({answerChosen:'none',wasCorrect:false,timeTaken:TIMER_SEC,timedOut:true});
   updateStreak(false);
   document.getElementById('btn-next').disabled=false;
@@ -831,8 +860,44 @@ function showLeaderboard(){
 
   const all=getCurrentStandings(score, cQ);
   const newRank=all.findIndex(p=>p.you)+1;
+  const total=all.length;
+
+  // Update live rank pill
+  const rankPill=document.getElementById('rank-pill');
+  document.getElementById('rank-pill-num').textContent=`#${newRank} of ${total}`;
+  rankPill.style.display='';
+
+  const youIdx=all.findIndex(p=>p.you);
+
+  // Ticker — show manager surveillance message only on wrong answers
+  const ticker=document.getElementById('lb-ticker');
+  const tickerText=document.getElementById('lb-ticker-text');
+  const lastEntry=qLog[qLog.length-1];
+  if(lastEntry && !lastEntry.wasCorrect){
+    tickerText.textContent=MISS_MESSAGES[Math.floor(Math.random()*MISS_MESSAGES.length)];
+    ticker.style.display='';
+  } else { ticker.style.display='none'; }
 
   function rankClass(i){ return i===0?'gold':i===1?'silver':i===2?'bronze':''; }
+
+  function arrowFor(name, newIdx){
+    const prev=prevStandings[name];
+    const cur=newIdx+1;
+    if(prev===undefined) return {text:'', cls:'', op:0};
+    if(cur<prev) return {text:`↑${prev-cur}`, cls:'up', op:1};
+    if(cur>prev) return {text:`↓${cur-prev}`, cls:'same', op:1};
+    return {text:'—', cls:'same', op:0.3};
+  }
+  function gainHtml(pts){
+    if(pts>0) return `<span class="lb-round-gain">+${pts}</span>`;
+    return `<span class="lb-round-gain zero">+0</span>`;
+  }
+  function gapHtml(p, all){
+    if(!p.you) return '';
+    const leader=all.find(x=>!x.you);
+    if(!leader || p.score>=leader.score) return '';
+    return `<div class="lb-gap-note">▲ ${leader.score-p.score} pts from 1st</div>`;
+  }
 
   if(!cardsEl.children.length){
     // First render — fly cards in from right, staggered
@@ -844,7 +909,7 @@ function showLeaderboard(){
         <div class="lb-rank-num ${rankClass(i)}">${i+1}</div>
         <div class="lb-card-name">${p.name}</div>
         <span class="lb-rank-arrow" style="opacity:0">—</span>
-        <div class="lb-card-score">${p.score}</div>`;
+        <div class="lb-score-wrap">${gainHtml(p.roundGain)}<div class="lb-card-score">${p.score}</div>${gapHtml(p,all)}</div>`;
       cardsEl.appendChild(card);
       setTimeout(()=>card.classList.add('animate-in'), i*120);
     });
@@ -861,16 +926,14 @@ function showLeaderboard(){
         card.dataset.name=p.name;
         cardsEl.appendChild(card);
       }
-      // Update rank number, score, arrow
+      // Update rank number, score, arrow, round gain
       card.querySelector('.lb-rank-num').textContent=i+1;
       card.querySelector('.lb-rank-num').className='lb-rank-num '+rankClass(i);
       card.querySelector('.lb-card-score').textContent=p.score;
+      card.querySelector('.lb-score-wrap').innerHTML=gainHtml(p.roundGain)+`<div class="lb-card-score">${p.score}</div>`+gapHtml(p,all);
       const arrow=card.querySelector('.lb-rank-arrow');
-      if(p.you && prevRank!==null){
-        if(newRank<prevRank){ arrow.textContent=`↑${prevRank-newRank}`; arrow.className='lb-rank-arrow up'; arrow.style.opacity=1; }
-        else if(newRank>prevRank){ arrow.textContent=`↓${newRank-prevRank}`; arrow.className='lb-rank-arrow same'; arrow.style.opacity=1; }
-        else { arrow.textContent='—'; arrow.style.opacity=0.4; }
-      }
+      const a=arrowFor(p.name, i);
+      arrow.textContent=a.text; arrow.className='lb-rank-arrow '+(a.cls||''); arrow.style.opacity=a.op;
       // Move card to new DOM order (drives FLIP)
       cardsEl.appendChild(card);
     });
@@ -901,7 +964,10 @@ function showLeaderboard(){
   }, 400);
 
   prevRank=newRank;
-  setTimeout(()=>cont.classList.add('visible'), all.length*150+600);
+  // Snapshot standings for next round's arrows
+  all.forEach((p,i)=>{ prevStandings[p.name]=i+1; });
+  // Extend forced pause — Continue button appears after 4s so they read the leaderboard
+  setTimeout(()=>cont.classList.add('visible'), Math.max(all.length*150+600, 2000));
 }
 
 function nextQuestion(){
@@ -928,11 +994,24 @@ function endGame(){
   });
   html+=`<div style="padding:12px 20px;font-size:0.8rem;color:var(--muted);border-top:1px solid var(--border)">Your rank: <strong style="color:var(--accent)">#${rank} of ${all.length}</strong></div>`;
   flb.innerHTML=html;
+
+  // Save to Netlify
   const payload={condition:CONDITION,participantId:new URLSearchParams(window.location.search).get('pid')||'N/A',finalScore:score,correctAnswers:correctCount,totalQuestions:questions.length,accuracy:Math.round((correctCount/questions.length)*100),maxStreak,totalTime:Math.round((Date.now()-gameStart)/1000),timedOut:timedOutCount,questionOrder:questionOrder,questions:qLog,tabSwitches,timeAwayMs};
   fetch('/.netlify/functions/save-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(r=>r.json())
     .then(d=>{const s=document.getElementById('save-status');if(d.result==='success'){s.textContent='✓ Results saved.';s.className='save-status ok';}else{s.textContent='Results could not be saved automatically.';}})
     .catch(()=>{document.getElementById('save-status').textContent='Results could not be saved automatically.';});
+
+  // Compute average from simulated standings and show below/above-average message
+  const avgScore = Math.round(all.reduce((sum,p)=>sum+p.score,0)/all.length);
+  const avgEl = document.getElementById('average-status');
+  if(score < avgScore){
+    avgEl.style.cssText='display:block;border-radius:10px;padding:12px 20px;margin-bottom:12px;font-size:0.875rem;font-weight:600;text-align:center;background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.35);color:#991B1B;';
+    avgEl.innerHTML=`⚠️ Your score (${score} pts) is below the participant average (${avgScore} pts). This result has been recorded and will be reviewed by your engagement manager before you begin the audit task.`;
+  } else {
+    avgEl.style.cssText='display:block;border-radius:10px;padding:12px 20px;margin-bottom:12px;font-size:0.875rem;font-weight:600;text-align:center;background:rgba(22,163,74,0.08);border:1px solid rgba(22,163,74,0.3);color:#166534;';
+    avgEl.innerHTML=`✓ Your score (${score} pts) is above the participant average (${avgScore} pts).`;
+  }
 }
 </script>
 </body>
