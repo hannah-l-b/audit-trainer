@@ -198,7 +198,7 @@ exports.handler = async function(event) {
     const reply = claudeData.content[0].text;
 
     // 2. Save Q&A pair to Supabase
-    const supabaseRes = await fetch(`${SUPABASE_URL}/rest/v1/questions`, {
+    const supabaseRes = await fetch(`${SUPABASE_URL}/rest/v1/questions-prolific`, {
       method: "POST",
       headers: {
         "Content-Type":  "application/json",
