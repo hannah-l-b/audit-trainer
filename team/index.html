@@ -893,7 +893,12 @@ function showLeaderboard(){
     `${MANAGER_NAME}: That's the one. We're moving in the right direction.`
   ];
   // Pool B: both right AND streak ≥ 3 (streak-aware messages)
-  const MGR_BOTH_HIT_STREAK=[
+  const MGR_BOTH_HIT_STREAK= newRank===1 ? [
+    `${MANAGER_NAME}: Our streak is working for us — don't break it now.`,
+    `${MANAGER_NAME}: We're ahead of all the other teams. Stay locked in.`,
+    `${MANAGER_NAME}: This is exactly what we need. Keep the streak going.`,
+    `${MANAGER_NAME}: We're in first place — let's keep it that way.`
+  ] : [
     `${MANAGER_NAME}: Our streak is working for us — don't break it now.`,
     `${MANAGER_NAME}: We're ahead of most teams. Stay locked in.`,
     `${MANAGER_NAME}: This is exactly what we need. Keep the streak going.`,
