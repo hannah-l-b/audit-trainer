@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Audit Training Exercise</title>
+<title>Audit Procedure Assessment</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -100,20 +100,29 @@
   /* Hide score from participants in no-competition condition */
   #score-display-pill{display:none !important;}
   #final-score{display:none !important;}
-  .record-note{display:none !important;}
+  #score-record-note{display:none !important;}
 </style>
 </head>
 <body>
 <div id="top-stripe"></div>
 <div id="start-screen">
-  <div class="brand-tag">Audit Training Exercise</div>
+  <div class="brand-tag">Audit Procedure Assessment</div>
   <h1>Test your audit procedure knowledge</h1>
   <p>Answer each question carefully. A <strong>30-second timer</strong> runs for each question. Try to answer as accurately as you can.</p>
   <div class="meta-row">
     <div class="meta-item"><span class="num">10</span><span class="lbl">Questions</span></div>
+    <div class="meta-item"><span class="num">7s</span><span class="lbl">Read time</span></div>
     <div class="meta-item"><span class="num">30s</span><span class="lbl">Per question</span></div>
   </div>
-  <button class="btn-primary" onclick="startGame()">Begin exercise</button>
+  <div style="background:rgba(184,146,42,0.07);border:1.5px solid rgba(184,146,42,0.3);border-radius:10px;padding:16px 20px;margin-bottom:20px;text-align:left;">
+    <div style="font-size:0.8rem;font-weight:700;color:#92400E;margin-bottom:6px;">📋 Before you begin — please read carefully</div>
+    <div style="font-size:0.8rem;color:#78350F;line-height:1.6;">Your responses will be recorded as part of this study. Answer each question as accurately as you can.</div>
+    <label style="display:flex;align-items:center;gap:10px;margin-top:12px;cursor:pointer;font-size:0.8rem;font-weight:600;color:#92400E;">
+      <input type="checkbox" id="ack-check" onchange="document.getElementById('btn-begin').disabled=!this.checked" style="width:16px;height:16px;cursor:pointer;">
+      I understand my results will be recorded as part of this study.
+    </label>
+  </div>
+  <button class="btn-primary" id="btn-begin" onclick="startGame()" disabled>Begin exercise</button>
 </div>
 <div id="game-screen">
   <div class="stats-bar">
@@ -131,9 +140,10 @@
   <div class="q-card">
     <div class="q-eyebrow" id="q-eyebrow">Question 1 of 17</div>
     <div class="q-text" id="q-text"></div>
+    <div style="margin-top:10px;font-size:0.8rem;color:#92400E;font-weight:700;background:rgba(184,146,42,0.06);border:1px solid rgba(184,146,42,0.25);border-radius:6px;padding:6px 12px;">📋 Your responses are being recorded as part of this study.</div>
   </div>
   <div class="reading-bar-wrap" id="reading-bar-wrap">
-    <div class="reading-label" id="reading-label">Read the question — answers appear in 6s</div>
+    <div class="reading-label" id="reading-label">Read the question — answers appear in 7s</div>
     <div class="reading-bar"><div class="reading-bar-fill" id="reading-bar-fill" style="width:0%"></div></div>
   </div>
   <div class="answers hidden" id="answers"></div>
@@ -142,13 +152,13 @@
 </div>
 <div id="end-screen">
   <div class="end-eyebrow">Exercise complete</div>
-  <h2>Well done.</h2>
-  <p class="end-sub">Here is how you finished.</p>
+  <h2>Exercise complete.</h2>
+  <p class="end-sub">Thank you for completing the training exercise.</p>
   <div class="score-display" id="final-score">0 <span>pts</span></div>
   <div class="summary-box" id="summary-box"></div>
-  <div class="record-note">📋 Please write down your final score before continuing to the next part of the study.</div>
+  <div class="record-note" id="score-record-note">📋 Please write down your final score before continuing to the next part of the study.</div>
   <div class="record-note" style="margin-top:8px">↩️ When you are ready, please return to the Qualtrics survey to continue the study.</div>
-  <div class="save-status" id="save-status">Saving results…</div>
+  <div class="save-status" id="save-status"></div>
 </div>
 <script>
 const CONDITION='no-competition';
@@ -219,11 +229,14 @@ function loadQ(){
   document.getElementById('score-display').textContent=score;
   const c=document.getElementById('answers');
   c.innerHTML='';
-  q.options.forEach((opt,i)=>{
+  const indices=shuffle([0,1,2,3].slice(0,q.options.length));
+  const shuffledCorrect=indices.indexOf(q.correct);
+  q._shuffledCorrect=shuffledCorrect;
+  indices.forEach((origIdx,dispIdx)=>{
     const btn=document.createElement('button');
     btn.className='ans-btn';
-    btn.innerHTML=`<span class="ans-indicator"></span><span class="ans-content"><span class="ans-label">${LABELS[i]}</span><span class="ans-text">${opt}</span></span>`;
-    btn.onclick=()=>selectAns(i);
+    btn.innerHTML=`<span class="ans-indicator"></span><span class="ans-content"><span class="ans-label">${LABELS[dispIdx]}</span><span class="ans-text">${q.options[origIdx]}</span></span>`;
+    btn.onclick=()=>selectAns(dispIdx);
     c.appendChild(btn);
   });
   startReadingPhase();
@@ -236,14 +249,14 @@ function startReadingPhase(){
   wrap.classList.add('visible');
   answers.classList.add('hidden');
   fill.style.width='0%';
-  readTimeLeft=6;
+  readTimeLeft=7;
   clearInterval(readInt);
   readInt=setInterval(()=>{
     readTimeLeft--;
-    const pct=((6-readTimeLeft)/6)*100;
+    const pct=((7-readTimeLeft)/7)*100;
     fill.style.width=pct+'%';
     if(readTimeLeft<=6)label.textContent=`Answers appear in ${readTimeLeft}s…`;
-    if(readTimeLeft<=0){clearInterval(readInt);wrap.classList.remove('visible');answers.classList.remove('hidden');label.textContent='Read the question — answers appear in 6s';startTimer();}
+    if(readTimeLeft<=0){clearInterval(readInt);wrap.classList.remove('visible');answers.classList.remove('hidden');label.textContent='Read the question — answers appear in 7s';startTimer();}
   },1000);
 }
 function startTimer(){
@@ -266,13 +279,14 @@ function selectAns(idx){
   btns.forEach(b=>b.disabled=true);
   const fb=document.getElementById('feedback');
   let ok=false;
-  if(idx===q.correct){
+  const correctIdx=q._shuffledCorrect;
+  if(idx===correctIdx){
     btns[idx].classList.add('correct');
     const m=mult(streak);const pts=Math.round(BASE_PTS*m);
     score+=pts;streak++;maxStreak=Math.max(maxStreak,streak);correctCount++;ok=true;
     fb.textContent='✓  Correct!';fb.className='feedback-row correct';
   }else{
-    btns[idx].classList.add('wrong');btns[q.correct].classList.add('reveal');
+    btns[idx].classList.add('wrong');btns[correctIdx].classList.add('reveal');
     streak=0;fb.textContent='✗  Incorrect.';fb.className='feedback-row wrong';
   }
   qLog.push({answerChosen:LABELS[idx],wasCorrect:ok,timeTaken:taken,timedOut:false});
@@ -282,9 +296,10 @@ function selectAns(idx){
 function expire(){
   answered=true;clearInterval(readInt);
   const q=questions[cQ];
+  const correctIdx=q._shuffledCorrect;
   const btns=document.querySelectorAll('.ans-btn');
   btns.forEach(b=>b.disabled=true);
-  btns[q.correct].classList.add('reveal');
+  btns[correctIdx].classList.add('reveal');
   streak=0;timedOutCount++;
   document.getElementById('feedback').textContent="⏰  Time's up.";
   document.getElementById('feedback').className='feedback-row wrong';
@@ -300,7 +315,8 @@ function endGame(){
   const acc=Math.round((correctCount/questions.length)*100);
   const sb=document.getElementById('summary-box');
   sb.innerHTML=`<div class="summary-header"><span>Your Results</span></div><div class="summary-row"><span class="summary-label">Questions answered</span><span class="summary-value">${questions.length}</span></div><div class="summary-row"><span class="summary-label">Correct answers</span><span class="summary-value">${correctCount} / ${questions.length}</span></div><div class="summary-row"><span class="summary-label">Accuracy</span><span class="summary-value">${acc}%</span></div>`;
-  const payload={condition:CONDITION,participantId:new URLSearchParams(window.location.search).get('pid')||'N/A',finalScore:score,correctAnswers:correctCount,totalQuestions:questions.length,accuracy:acc,maxStreak,totalTime:Math.round((Date.now()-gameStart)/1000),timedOut:timedOutCount,questionOrder:questionOrder,questions:qLog,tabSwitches,timeAwayMs};
+  // Save to Netlify
+  const payload={condition:CONDITION,participantId:new URLSearchParams(window.location.search).get('pid')||'N/A',finalScore:score,correctAnswers:correctCount,totalQuestions:questions.length,accuracy:Math.round((correctCount/questions.length)*100),maxStreak,totalTime:Math.round((Date.now()-gameStart)/1000),timedOut:timedOutCount,questionOrder:questionOrder,questions:qLog,tabSwitches,timeAwayMs};
   fetch('/.netlify/functions/save-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(r=>r.json())
     .then(d=>{const s=document.getElementById('save-status');if(d.result==='success'){s.textContent='✓ Results saved.';s.className='save-status ok';}else{s.textContent='Results could not be saved automatically.';}})
