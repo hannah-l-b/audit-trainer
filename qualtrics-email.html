@@ -415,8 +415,8 @@ document.getElementById('date-label').textContent = getDate();
   fetch(GET_SCORE_URL + '?pid=' + encodeURIComponent(PARTICIPANT_ID))
     .then(r => r.json())
     .then(d => {
-      if (d.found && d.participant_score != null) {
-        PARTICIPANT_SCORE = parseInt(d.participant_score);
+      if (d.found && d.final_score != null) {
+        PARTICIPANT_SCORE = parseInt(d.final_score);
       }
       document.getElementById('init-msg').textContent = getInitialMessage(PARTICIPANT_SCORE, CONDITION);
     })
