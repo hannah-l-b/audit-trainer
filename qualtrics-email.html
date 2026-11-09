@@ -346,17 +346,18 @@
 
 <script>
 // ── CONFIG ────────────────────────────────────────────────────
-const PROXY_URL = "https://audit-trainer.netlify.app/.netlify/functions/manager-reply";
+const PROXY_URL      = "https://audit-trainer.netlify.app/.netlify/functions/manager-reply";
+const GET_SCORE_URL  = "https://audit-trainer.netlify.app/.netlify/functions/get-score";
 
 const _p              = new URLSearchParams(window.location.search);
 const CONTROL_INDEX   = _p.get("control")   || "0";
 const CURRENT_CONTROL = _p.get("name")      || "an internal control";
 const PARTICIPANT_ID  = _p.get("pid")       || "N/A";
-const CONDITION       = _p.get("condition") || (() => { try { return localStorage.getItem('participantCondition') || "no-competition"; } catch(e){ return "no-competition"; } })();
+const CONDITION       = _p.get("condition") || "no-competition";
 const MANAGER_NAME    = _p.get("manager")   || "Your Manager";
 
-// Read score saved by game via localStorage (same Netlify domain)
-const PARTICIPANT_SCORE = (() => { try { const s = parseInt(localStorage.getItem('participantScore')); return isNaN(s) ? null : s; } catch(e){ return null; } })();
+// Score is fetched from Supabase on load (localStorage blocked in cross-origin iframes)
+let PARTICIPANT_SCORE = null;
 
 function getInitials(name) {
   return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
@@ -372,13 +373,13 @@ function getScoreReaction(score) {
 function getInitialMessage(score, condition) {
   const scorePart = score !== null ? ` ${score} points. ${getScoreReaction(score)}` : "";
   if (condition === "competitive") {
-    return `Hey, saw your score from the training exercise was recorded.${scorePart} I'm tied up with something right now but feel free to message me if anything comes up.`;
+    return `Hey, saw your score from the exercise was recorded.${scorePart} I'm tied up with something right now but feel free to message me if anything comes up.`;
   }
   if (condition === "team") {
-    return `Hey, saw our scores from the training exercise were recorded. You came in at${scorePart} I'm in the middle of something right now but message me if you need anything. We're in this together.`;
+    return `Hey, saw our scores from the exercise were recorded. You came in at${scorePart} I'm in the middle of something right now but message me if you need anything. We're in this together.`;
   }
   // no-competition
-  return `Hey, just wanted to let you know your score from the training exercise was logged.${scorePart} I'm working through some things on my end but feel free to reach out if you have any questions.`;
+  return `Hey, just wanted to let you know your score from the exercise was logged.${scorePart} I'm working through some things on my end but feel free to reach out if you have any questions.`;
 }
 // ─────────────────────────────────────────────────────────────
 
@@ -402,9 +403,27 @@ document.getElementById('typing-avatar').textContent = MANAGER_INITIALS;
 document.getElementById('typing-label').textContent  = MANAGER_NAME + ' is typing…';
 document.getElementById('compose').placeholder = 'Type a message to ' + MANAGER_NAME;
 
-document.getElementById('init-msg').textContent = getInitialMessage(PARTICIPANT_SCORE, CONDITION);
 document.getElementById('init-time').textContent = getTime();
 document.getElementById('date-label').textContent = getDate();
+
+// Fetch score from Supabase, then set initial message
+(function loadScore() {
+  if (PARTICIPANT_ID === 'N/A') {
+    document.getElementById('init-msg').textContent = getInitialMessage(null, CONDITION);
+    return;
+  }
+  fetch(GET_SCORE_URL + '?pid=' + encodeURIComponent(PARTICIPANT_ID))
+    .then(r => r.json())
+    .then(d => {
+      if (d.found && d.participant_score != null) {
+        PARTICIPANT_SCORE = parseInt(d.participant_score);
+      }
+      document.getElementById('init-msg').textContent = getInitialMessage(PARTICIPANT_SCORE, CONDITION);
+    })
+    .catch(() => {
+      document.getElementById('init-msg').textContent = getInitialMessage(null, CONDITION);
+    });
+})();
 
 // ── RESTORE HISTORY ──
 const HISTORY_KEY = 'managerHistory_' + CONTROL_INDEX;
