@@ -23,7 +23,7 @@ exports.handler = async function(event) {
 
   try {
     const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/results?participant_id=eq.${encodeURIComponent(participantId)}&select=participant_id`,
+      `${SUPABASE_URL}/rest/v1/results_prolific?participant_id=eq.${encodeURIComponent(participantId)}&select=participant_id`,
       {
         headers: {
           "apikey":        SUPABASE_ANON_KEY,
