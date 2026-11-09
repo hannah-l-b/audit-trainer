@@ -25,10 +25,10 @@ exports.handler = async function(event) {
   const manager = String(params.manager || "").trim();
 
   // AC1: correct answer contains this unique phrase
-  const fail1 = ac1.includes("training exercise to test audit procedure knowledge") ? "0" : "1";
+  const fail1 = ac1.includes("exercise to test audit procedure knowledge") ? "0" : "1";
 
   // AC2: correct answer contains this unique phrase
-  const fail2 = ac2.includes("All participants receive course extra credit") ? "0" : "1";
+  const fail2 = ac2.includes("Participants receive payment through Prolific upon completing the study") ? "0" : "1";
 
   // AC3: correct answer is the participant's assigned manager name
   const fail3 = (manager && ac3.trim() === manager.trim()) ? "0" : "1";
