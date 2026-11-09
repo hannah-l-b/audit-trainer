@@ -116,10 +116,10 @@
   </div>
   <div style="background:rgba(184,146,42,0.07);border:1.5px solid rgba(184,146,42,0.3);border-radius:10px;padding:16px 20px;margin-bottom:20px;text-align:left;">
     <div style="font-size:0.8rem;font-weight:700;color:#92400E;margin-bottom:6px;">📋 Before you begin — please read carefully</div>
-    <div style="font-size:0.8rem;color:#78350F;line-height:1.6;">Your responses will be recorded as part of this study. Answer each question as accurately as you can.</div>
+    <div style="font-size:0.8rem;color:#78350F;line-height:1.6;">Answer each question as accurately as you can.</div>
     <label style="display:flex;align-items:center;gap:10px;margin-top:12px;cursor:pointer;font-size:0.8rem;font-weight:600;color:#92400E;">
       <input type="checkbox" id="ack-check" onchange="document.getElementById('btn-begin').disabled=!this.checked" style="width:16px;height:16px;cursor:pointer;">
-      I understand my results will be recorded as part of this study.
+      I am ready to begin the exercise.
     </label>
   </div>
   <button class="btn-primary" id="btn-begin" onclick="startGame()" disabled>Begin exercise</button>
@@ -140,7 +140,6 @@
   <div class="q-card">
     <div class="q-eyebrow" id="q-eyebrow">Question 1 of 17</div>
     <div class="q-text" id="q-text"></div>
-    <div style="margin-top:10px;font-size:0.8rem;color:#92400E;font-weight:700;background:rgba(184,146,42,0.06);border:1px solid rgba(184,146,42,0.25);border-radius:6px;padding:6px 12px;">📋 Your responses are being recorded as part of this study.</div>
   </div>
   <div class="reading-bar-wrap" id="reading-bar-wrap">
     <div class="reading-label" id="reading-label">Read the question — answers appear in 7s</div>
@@ -322,7 +321,15 @@ function endGame(){
 
   fetch('/.netlify/functions/save-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(r=>r.json())
-    .then(d=>{const s=document.getElementById('save-status');if(d.result==='success'){s.textContent='✓ Results saved.';s.className='save-status ok';}else{s.textContent='Results could not be saved automatically.';}})
+    .then(d=>{
+      const s=document.getElementById('save-status');
+      if(d.result==='success'){
+        s.textContent='✓ Results saved.';
+        s.className='save-status ok';
+        // Signal Qualtrics tab that game is complete
+        try{ if(window.opener&&!window.opener.closed){ window.opener.postMessage('gameComplete','*'); } }catch(e){}
+      } else { s.textContent='Results could not be saved automatically.'; }
+    })
     .catch(()=>{document.getElementById('save-status').textContent='Results could not be saved automatically.';});
 }
 </script>
