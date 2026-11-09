@@ -524,8 +524,13 @@ const MISS_MESSAGES = [
 // Non-repeating message queues — shuffle and cycle
 let hitMsgQueue=[], missMsgQueue=[], inlineMissQueue=[];
 function nextMsg(queue, source){
-  if(!queue.length){ queue.push(...source.map((_,i)=>i)); shuffle(queue); }
-  return source[queue.shift()];
+  // Always refill when empty OR when stored indices exceed current source length
+  if(!queue.length || queue.some(i=>i>=source.length)){
+    queue.length=0;
+    queue.push(...source.map((_,i)=>i));
+    shuffle(queue);
+  }
+  return source[queue.shift()] || source[0];
 }
 // Manager's starting score — updated dynamically each question
 const MANAGER_START = 0;
