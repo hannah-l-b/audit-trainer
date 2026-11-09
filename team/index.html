@@ -8,139 +8,456 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:#F0F4F8;--panel:#FFFFFF;--border:#CBD5E1;--text:#0F1B2A;
-    --muted:#64748B;--accent:#B8922A;--accent-light:#D4AE52;
-    --correct-border:#16A34A;--wrong-border:#DC2626;--radius:12px;
-    --shadow:0 1px 3px rgba(0,0,0,0.08),0 4px 12px rgba(0,0,0,0.06);
+    --bg:      #F0F4F8;
+    --panel:   #FFFFFF;
+    --border:  #CBD5E1;
+    --text:    #0F1B2A;
+    --muted:   #64748B;
+    --accent:  #B8922A;
+    --accent-light: #D4AE52;
+    --accent-bg: rgba(184,146,42,0.08);
+    --correct: #16A34A;
+    --correct-bg: #F0FDF4;
+    --correct-border: #16A34A;
+    --wrong:   #DC2626;
+    --wrong-bg: #FEF2F2;
+    --wrong-border: #DC2626;
+    --radius:  12px;
+    --shadow:  0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06);
   }
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 16px 48px;}
-  #top-stripe{position:fixed;top:0;left:0;height:4px;background:linear-gradient(90deg,var(--accent),var(--accent-light));width:0%;transition:width 0.5s ease;z-index:100;}
-  /* START */
-  #start-screen{max-width:560px;width:100%;margin:auto;text-align:center;padding:48px 0;}
-  .brand-tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:28px;padding:6px 16px;border:1px solid var(--accent);border-radius:100px;}
-  #start-screen h1{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:800;line-height:1.15;margin-bottom:16px;}
-  #start-screen p{font-size:0.95rem;color:var(--muted);line-height:1.7;margin-bottom:40px;}
-  #start-screen p strong{color:var(--text);font-weight:600;}
-  .meta-row{display:flex;justify-content:center;gap:0;margin-bottom:40px;}
-  .meta-item{text-align:center;padding:20px 32px;border-right:1px solid var(--border);}
-  .meta-item:last-child{border-right:none;}
-  .meta-item .num{display:block;font-size:2rem;font-weight:800;color:var(--accent);line-height:1;}
-  .meta-item .lbl{font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:4px;}
-  .btn-primary{background:var(--accent);color:var(--text);border:none;padding:16px 52px;font-family:'Inter',sans-serif;font-size:1rem;font-weight:700;border-radius:100px;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 14px rgba(184,146,42,0.35);}
-  .btn-primary:hover{background:var(--accent-light);transform:translateY(-2px);}
-  /* GAME */
-  #game-screen{display:none;max-width:720px;width:100%;padding-top:56px;}
-  .stats-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
-  .stat-pill{background:var(--panel);border:1px solid var(--border);border-radius:100px;padding:8px 20px;font-size:0.875rem;color:var(--muted);box-shadow:var(--shadow);}
-  .stat-pill strong{color:var(--text);font-weight:700;}
-  .timer-wrap{position:relative;width:68px;height:68px;flex-shrink:0;}
-  .timer-wrap svg{position:absolute;top:0;left:0;transform:rotate(-90deg);}
-  .timer-wrap circle{fill:none;stroke-width:4;}
-  .timer-bg{stroke:var(--border);}
-  .timer-fg{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset 0.9s linear,stroke 0.4s;}
-  .timer-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;color:var(--text);}
-  .q-progress{height:3px;background:var(--border);border-radius:2px;margin-bottom:20px;overflow:hidden;}
-  .q-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-light));transition:width 0.5s ease;}
-  .q-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:32px 36px;margin-bottom:16px;box-shadow:var(--shadow);}
-  .q-eyebrow{font-size:0.7rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--accent);margin-bottom:16px;}
-  .q-text{font-size:1rem;line-height:1.75;color:var(--text);white-space:pre-line;}
-  /* Reading phase */
-  .reading-bar-wrap{margin-bottom:12px;display:none;}
-  .reading-bar-wrap.visible{display:block;}
-  .reading-label{font-size:0.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;text-align:center;}
-  .reading-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
-  .reading-bar-fill{height:100%;background:var(--accent);border-radius:2px;transition:width 0.1s linear;}
-  .answers.hidden{visibility:hidden;pointer-events:none;}
-  .answers{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
-  .ans-btn{display:flex;align-items:stretch;background:var(--panel);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all 0.15s;text-align:left;width:100%;box-shadow:var(--shadow);}
-  .ans-btn:hover:not(:disabled){border-color:var(--accent);box-shadow:0 0 0 3px rgba(184,146,42,0.15),var(--shadow);transform:translateY(-1px);}
-  .ans-btn:disabled{cursor:default;transform:none;}
-  .ans-indicator{width:5px;flex-shrink:0;background:var(--border);transition:background 0.15s;}
-  .ans-content{padding:18px 22px;display:flex;align-items:baseline;gap:12px;flex:1;}
-  .ans-label{font-size:0.75rem;font-weight:800;color:var(--muted);flex-shrink:0;text-transform:uppercase;letter-spacing:1px;background:var(--bg);border-radius:6px;padding:3px 8px;line-height:1.4;}
-  .ans-text{font-size:0.975rem;color:var(--text);line-height:1.5;font-weight:500;}
-  .ans-btn.correct{border-color:var(--correct-border);background:#F0FDF4;}
-  .ans-btn.correct .ans-indicator{background:var(--correct-border);}
-  .ans-btn.correct .ans-label{background:#DCFCE7;color:var(--correct-border);}
-  .ans-btn.correct .ans-text{color:#166534;font-weight:600;}
-  .ans-btn.wrong{border-color:var(--wrong-border);background:#FEF2F2;}
-  .ans-btn.wrong .ans-indicator{background:var(--wrong-border);}
-  .ans-btn.wrong .ans-label{background:#FEE2E2;color:var(--wrong-border);}
-  .ans-btn.wrong .ans-text{color:#991B1B;}
-  .ans-btn.reveal{border-color:var(--correct-border);background:#F0FDF4;}
-  .ans-btn.reveal .ans-indicator{background:var(--correct-border);}
-  .ans-btn.reveal .ans-label{background:#DCFCE7;color:var(--correct-border);}
-  .ans-btn.reveal .ans-text{color:#166534;font-weight:600;}
-  .feedback-row{min-height:40px;display:flex;align-items:center;font-size:0.95rem;font-weight:600;margin-bottom:20px;padding:10px 16px;border-radius:8px;transition:all 0.2s;}
-  .feedback-row.correct{background:#F0FDF4;color:#166534;border:1px solid #BBF7D0;}
-  .feedback-row.wrong{background:#FEF2F2;color:#991B1B;border:1px solid #FECACA;}
-  .feedback-row.empty{background:transparent;border:none;}
-  .btn-next{display:block;width:100%;background:var(--text);color:#fff;border:none;padding:15px;font-family:'Inter',sans-serif;font-size:0.95rem;font-weight:700;border-radius:var(--radius);cursor:pointer;transition:all 0.2s;box-shadow:0 4px 12px rgba(15,27,42,0.2);}
-  .btn-next:hover:not(:disabled){background:#1e3252;transform:translateY(-1px);}
-  .btn-next:disabled{opacity:0.3;cursor:default;transform:none;}
-  /* END */
-  #end-screen{display:none;max-width:560px;width:100%;margin:auto;padding:64px 0;text-align:center;}
-  .end-eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:20px;display:inline-block;padding:6px 16px;border:1px solid var(--accent);border-radius:100px;}
-  #end-screen h2{font-size:2.2rem;font-weight:800;margin-bottom:8px;}
-  .end-sub{font-size:1rem;color:var(--muted);margin-bottom:32px;}
-  .score-display{font-size:4rem;font-weight:800;color:var(--accent);letter-spacing:-2px;margin-bottom:32px;line-height:1;}
-  .score-display span{font-size:1.2rem;color:var(--muted);font-weight:400;margin-left:4px;letter-spacing:0;}
-  .summary-box{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:24px;box-shadow:var(--shadow);text-align:left;}
-  .summary-header{padding:14px 20px;border-bottom:1px solid var(--border);font-size:0.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;}
-  .summary-row{display:flex;align-items:center;padding:12px 20px;border-bottom:1px solid var(--border);font-size:0.9rem;}
-  .summary-row:last-child{border-bottom:none;}
-  .summary-label{flex:1;color:var(--text);}
-  .summary-value{font-weight:800;color:var(--text);}
-  .summary-value.accent{color:var(--accent);}
-  .record-note{background:rgba(184,146,42,0.08);border:1px solid rgba(184,146,42,0.3);border-radius:var(--radius);padding:16px 20px;font-size:0.875rem;color:#92400E;font-weight:500;margin-bottom:12px;}
-  .save-status{font-size:0.8rem;color:var(--muted);margin-top:8px;}
-  .save-status.ok{color:var(--correct-border);font-weight:600;}
-  a[href*="netlify.com"]{display:none !important;}
-  /* Hide score from participants in no-competition condition */
-  #score-display-pill{display:none !important;}
-  #final-score{display:none !important;}
-  #score-record-note{display:none !important;}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 16px 48px;
+  }
+  /* ── TOP STRIPE ── */
+  #top-stripe {
+    position: fixed; top: 0; left: 0; height: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-light));
+    width: 0%; transition: width 0.5s ease; z-index: 200;
+  }
+  /* ── START SCREEN ── */
+  #start-screen {
+    max-width: 560px; width: 100%;
+    margin: auto; text-align: center; padding: 64px 0;
+  }
+  .brand-tag {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    letter-spacing: 3px; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 32px;
+    padding: 6px 16px; border: 1px solid var(--accent);
+    border-radius: 100px;
+  }
+  #start-screen h1 {
+    font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 800;
+    line-height: 1.15; margin-bottom: 16px; color: var(--text);
+  }
+  #start-screen p { font-size: 1rem; color: var(--muted); line-height: 1.7; margin-bottom: 40px; }
+  #start-screen p strong { color: var(--text); font-weight: 600; }
+  .meta-row { display: flex; justify-content: center; gap: 0; margin-bottom: 40px; }
+  .meta-item {
+    text-align: center; padding: 20px 32px;
+    border-right: 1px solid var(--border);
+  }
+  .meta-item:last-child { border-right: none; }
+  .meta-item .num { display: block; font-size: 2rem; font-weight: 800; color: var(--accent); line-height: 1; }
+  .meta-item .lbl { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }
+  .btn-primary {
+    background: var(--accent); color: #fff; border: none;
+    padding: 16px 52px; font-family: 'Inter', sans-serif;
+    font-size: 1rem; font-weight: 700; border-radius: 100px;
+    cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(184,146,42,0.35);
+  }
+  .btn-primary:hover { background: var(--accent-light); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(184,146,42,0.4); }
+  /* ── GAME SCREEN ── */
+  #game-screen { display: none; max-width: 720px; width: 100%; padding-top: 56px; }
+  .stats-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .stat-pill {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 100px; padding: 8px 20px;
+    font-size: 0.875rem; color: var(--muted);
+    box-shadow: var(--shadow);
+  }
+  .stat-pill strong { color: var(--text); font-weight: 700; }
+  /* Score with animation */
+  .score-wrap { position: relative; }
+  .score-pop {
+    position: absolute; top: -32px; left: 50%; transform: translateX(-50%);
+    font-size: 0.85rem; font-weight: 800; color: var(--correct);
+    animation: popUp 1s ease forwards; pointer-events: none; white-space: nowrap;
+  }
+  @keyframes popUp {
+    0%   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-24px); }
+  }
+  .timer-wrap { position: relative; width: 68px; height: 68px; flex-shrink: 0; }
+  .timer-wrap svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
+  .timer-wrap circle { fill: none; stroke-width: 4; }
+  .timer-bg { stroke: var(--border); }
+  .timer-fg { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset 0.9s linear, stroke 0.4s; }
+  .timer-label {
+    position: absolute; inset: 0; display: flex;
+    align-items: center; justify-content: center;
+    font-size: 1.2rem; font-weight: 800; color: var(--text);
+  }
+  /* ── PROMINENT STREAK DISPLAY ── */
+  .streak-wrap {
+    background: var(--panel); border: 2px solid var(--border);
+    border-radius: 12px; padding: 10px 18px;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    box-shadow: var(--shadow); min-width: 100px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .streak-wrap.hot {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(184,146,42,0.25), var(--shadow);
+  }
+  .streak-wrap.on-fire {
+    border-color: #DC2626;
+    box-shadow: 0 0 0 3px rgba(220,38,38,0.3), var(--shadow);
+    animation: fireGlow 1.2s ease-in-out infinite alternate;
+  }
+  @keyframes fireGlow {
+    from { box-shadow: 0 0 0 3px rgba(220,38,38,0.2), var(--shadow); }
+    to   { box-shadow: 0 0 0 6px rgba(220,38,38,0.4), var(--shadow); }
+  }
+  .streak-label { font-size: 0.65rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+  .streak-num {
+    font-size: 1.6rem; font-weight: 900; color: var(--accent); line-height: 1;
+    transition: color 0.3s;
+  }
+  .streak-num.hot   { color: #D97706; }
+  .streak-num.fire  { color: #DC2626; }
+  .streak-num.bump  { animation: bump 0.3s ease; }
+  @keyframes bump {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.4); }
+    100% { transform: scale(1); }
+  }
+  .mult-badge {
+    font-size: 0.75rem; font-weight: 800;
+    padding: 3px 10px; border-radius: 100px;
+    background: var(--accent); color: #fff;
+    animation: badgePop 0.35s ease;
+  }
+  .mult-badge.fire { background: #DC2626; }
+  @keyframes badgePop {
+    0%   { transform: scale(0.7); opacity: 0; }
+    70%  { transform: scale(1.15); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  /* Progress */
+  .q-progress { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 20px; overflow: hidden; }
+  .q-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-light)); transition: width 0.5s ease; }
+  /* Question card */
+  .q-card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 32px 36px; margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+  .q-eyebrow {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 2.5px;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 16px;
+  }
+  .q-text { font-size: 1rem; line-height: 1.75; color: var(--text); white-space: pre-line; }
+  /* Answers */
+  .answers { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .reading-bar-wrap {
+    margin-bottom: 12px; display: none;
+  }
+  .reading-bar-wrap.visible { display: block; }
+  .reading-label {
+    font-size: 0.75rem; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 6px; text-align: center;
+  }
+  .reading-bar {
+    height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;
+  }
+  .reading-bar-fill {
+    height: 100%; background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.1s linear;
+  }
+  .answers.hidden { visibility: hidden; pointer-events: none; }
+  .ans-btn {
+    display: flex; align-items: stretch;
+    background: var(--panel); border: 1.5px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+    cursor: pointer; transition: all 0.15s;
+    text-align: left; width: 100%;
+    box-shadow: var(--shadow);
+  }
+  .ans-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(184,146,42,0.15), var(--shadow);
+    transform: translateY(-1px);
+  }
+  .ans-btn:disabled { cursor: default; transform: none; }
+  .ans-indicator { width: 5px; flex-shrink: 0; background: var(--border); transition: background 0.15s; }
+  .ans-content { padding: 18px 22px; display: flex; align-items: baseline; gap: 12px; flex: 1; }
+  .ans-label {
+    font-size: 0.75rem; font-weight: 800; color: var(--muted);
+    flex-shrink: 0; text-transform: uppercase; letter-spacing: 1px;
+    background: var(--bg); border-radius: 6px;
+    padding: 3px 8px; line-height: 1.4;
+  }
+  .ans-text { font-size: 0.975rem; color: var(--text); line-height: 1.5; font-weight: 500; }
+  .ans-btn.correct { border-color: var(--correct-border); background: var(--correct-bg); }
+  .ans-btn.correct .ans-indicator { background: var(--correct-border); }
+  .ans-btn.correct .ans-label { background: #DCFCE7; color: var(--correct); }
+  .ans-btn.correct .ans-text { color: #166534; font-weight: 600; }
+  .ans-btn.wrong { border-color: var(--wrong-border); background: var(--wrong-bg); }
+  .ans-btn.wrong .ans-indicator { background: var(--wrong-border); }
+  .ans-btn.wrong .ans-label { background: #FEE2E2; color: var(--wrong); }
+  .ans-btn.wrong .ans-text { color: #991B1B; }
+  .ans-btn.reveal { border-color: var(--correct-border); background: var(--correct-bg); }
+  .ans-btn.reveal .ans-indicator { background: var(--correct-border); }
+  .ans-btn.reveal .ans-label { background: #DCFCE7; color: var(--correct); }
+  .ans-btn.reveal .ans-text { color: #166534; font-weight: 600; }
+  /* Feedback */
+  .feedback-row {
+    min-height: 40px; display: flex; align-items: center; gap: 10px;
+    font-size: 0.95rem; font-weight: 600; margin-bottom: 6px;
+    padding: 10px 16px; border-radius: 8px;
+    transition: all 0.2s;
+  }
+  .feedback-row.correct { background: var(--correct-bg); color: #166534; border: 1px solid #BBF7D0; }
+  .feedback-row.wrong   { background: var(--wrong-bg); color: #991B1B; border: 1px solid #FECACA; }
+  .feedback-row.empty   { background: transparent; border: none; }
+  /* ── STREAK MESSAGE ── */
+  .streak-msg {
+    min-height: 44px; text-align: center;
+    font-size: 1.05rem; font-weight: 800;
+    color: var(--accent); margin-bottom: 12px; padding: 0 4px;
+    display: flex; align-items: center; justify-content: center;
+    animation: msgFadeIn 0.4s ease;
+  }
+  @keyframes msgFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .streak-msg.fire  { color: #DC2626; font-size: 1.15rem; }
+  .streak-msg.wrong { color: var(--wrong); font-size: 0.95rem; }
+  /* Next button */
+  .btn-next {
+    display: block; width: 100%;
+    background: var(--text); color: #fff;
+    border: none; padding: 15px; font-family: 'Inter', sans-serif;
+    font-size: 0.95rem; font-weight: 700; border-radius: var(--radius);
+    cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(15,27,42,0.2);
+  }
+  .btn-next:hover:not(:disabled) { background: #1e3252; transform: translateY(-1px); }
+  .btn-next:disabled { opacity: 0.3; cursor: default; transform: none; }
+  /* ── KAHOOT LEADERBOARD OVERLAY ── */
+  #lb-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 300;
+    background: linear-gradient(135deg, #0D1B2A 0%, #1B2B3B 100%);
+    flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  #lb-overlay.active { display: flex; }
+  .lb-overlay-title {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .lb-overlay-sub {
+    font-size: 0.875rem; color: #6B7F94; margin-bottom: 32px;
+  }
+  .lb-cards { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 8px; }
+  .lb-card {
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; padding: 14px 20px;
+    opacity: 0; transform: translateX(40px);
+    transition: opacity 0.35s ease, transform 0.35s ease, background 0.3s;
+  }
+  .lb-card.you {
+    background: rgba(184,146,42,0.15);
+    border-color: rgba(184,146,42,0.4);
+  }
+  .lb-card.animate-in { opacity: 1; transform: translateX(0); }
+  .lb-card.shake {
+    animation: shake 0.5s ease 0.4s;
+  }
+  .lb-card.rise {
+    animation: rise 0.5s ease 0.4s;
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%      { transform: translateX(-6px); }
+    40%      { transform: translateX(6px); }
+    60%      { transform: translateX(-4px); }
+    80%      { transform: translateX(4px); }
+  }
+  @keyframes rise {
+    0%   { transform: translateY(0); }
+    40%  { transform: translateY(-10px); }
+    70%  { transform: translateY(-6px); }
+    100% { transform: translateY(0); }
+  }
+  .lb-rank-num {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 800; flex-shrink: 0;
+    background: rgba(255,255,255,0.1); color: #fff;
+  }
+  .lb-rank-num.gold   { background: #B8922A; color: #fff; }
+  .lb-rank-num.silver { background: #64748B; color: #fff; }
+  .lb-rank-num.bronze { background: #9A6B3A; color: #fff; }
+  .lb-card-name { flex: 1; font-size: 0.95rem; font-weight: 600; color: #EEF2F7; }
+  .lb-card.you .lb-card-name { color: var(--accent-light); }
+  .lb-rank-arrow {
+    font-size: 0.75rem; font-weight: 700;
+    padding: 2px 8px; border-radius: 100px; margin-right: 4px;
+  }
+  .lb-rank-arrow.up   { background: rgba(22,163,74,0.2); color: #4ADE80; }
+  .lb-rank-arrow.same { background: rgba(100,116,139,0.2); color: #94A3B8; }
+  .lb-score-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+  .lb-round-gain { font-size: 0.65rem; font-weight: 700; color: #4ADE80; font-variant-numeric: tabular-nums; min-height: 12px; }
+  .lb-round-gain.zero { color: #64748B; }
+  .lb-card-score {
+    font-size: 1rem; font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: #EEF2F7;
+  }
+  .lb-card.you .lb-card-score { color: var(--accent-light); }
+  .lb-gap-note { font-size: 0.7rem; color: #FDE68A; margin-top: 2px; font-weight: 600; }
+  .lb-continue {
+    margin-top: 28px; background: var(--accent); color: #fff;
+    border: none; padding: 14px 48px; font-family: 'Inter', sans-serif;
+    font-size: 0.95rem; font-weight: 700; border-radius: 100px;
+    cursor: pointer; transition: all 0.2s;
+    opacity: 0; transform: translateY(10px); pointer-events: none;
+    box-shadow: 0 4px 14px rgba(184,146,42,0.4);
+  }
+  .lb-continue.visible { opacity: 1; transform: translateY(0); transition: all 0.4s ease 0.1s; pointer-events: auto; }
+  .lb-continue:hover { background: var(--accent-light); transform: translateY(-2px); }
+  /* ── END SCREEN ── */
+  #end-screen {
+    display: none; max-width: 560px; width: 100%;
+    margin: auto; padding: 64px 0; text-align: center;
+  }
+  .end-eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 20px;
+    display: inline-block; padding: 6px 16px;
+    border: 1px solid var(--accent); border-radius: 100px;
+  }
+  #end-screen h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 8px; }
+  .end-sub { font-size: 1rem; color: var(--muted); margin-bottom: 32px; }
+  .score-display {
+    font-size: 4rem; font-weight: 800; color: var(--accent);
+    letter-spacing: -2px; margin-bottom: 32px; line-height: 1;
+  }
+  .score-display span { font-size: 1.2rem; color: var(--muted); font-weight: 400; margin-left: 4px; letter-spacing: 0; }
+  .final-lb {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden; margin-bottom: 24px;
+    box-shadow: var(--shadow); text-align: left;
+  }
+  .final-lb-header {
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--muted);
+    display: flex; justify-content: space-between;
+  }
+  .final-lb-row {
+    display: flex; align-items: center; padding: 12px 20px;
+    gap: 14px; border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+  }
+  .final-lb-row:last-child { border-bottom: none; }
+  .final-lb-row.you { background: var(--accent-bg); }
+  .final-lb-rank { width: 24px; font-size: 0.8rem; color: var(--muted); font-weight: 700; }
+  .final-lb-name { flex: 1; color: var(--text); font-weight: 500; }
+  .final-lb-row.you .final-lb-name { color: var(--accent); font-weight: 700; }
+  .final-lb-score { font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+  .final-lb-row.you .final-lb-score { color: var(--accent); }
+  .record-note {
+    background: var(--accent-bg); border: 1px solid rgba(184,146,42,0.3);
+    border-radius: var(--radius); padding: 16px 20px;
+    font-size: 0.875rem; color: #92400E; font-weight: 500; margin-bottom: 12px;
+  }
+  .save-status { font-size: 0.8rem; color: var(--muted); margin-top: 8px; }
+  .save-status.ok { color: var(--correct); font-weight: 600; }
+  a[href*="netlify.com"] { display: none !important; }
+  .feedback-row.wrong {
+    background: var(--wrong-bg); color: #991B1B;
+    border: 2px solid #DC2626;
+    font-size: 1.05rem; padding: 16px 22px;
+    box-shadow: 0 0 0 4px rgba(220,38,38,0.12);
+    flex-direction: column; align-items: flex-start; gap: 6px;
+  }
+  .feedback-wrong-main { font-size: 1.05rem; font-weight: 700; }
+  .feedback-wrong-note { font-size: 0.875rem; font-weight: 600; color: #7F1D1D; letter-spacing: 0.01em; }
 </style>
 </head>
 <body>
 <div id="top-stripe"></div>
+<!-- START -->
 <div id="start-screen">
   <div class="brand-tag">Audit Procedure Assessment</div>
   <h1>Test your audit procedure knowledge</h1>
-  <p>Answer each question carefully. A <strong>30-second timer</strong> runs for each question. Try to answer as accurately as you can.</p>
+  <p>You have been paired with your engagement manager, <strong id="mgr-name-intro">your manager</strong>, for this exercise. Your score will be combined with your manager's to form your team score. A live leaderboard will show your team's combined standing after every question. A <strong>30-second timer</strong> runs for each question — answer accurately and build your streak to multiply your score.</p>
   <div class="meta-row">
     <div class="meta-item"><span class="num">10</span><span class="lbl">Questions</span></div>
     <div class="meta-item"><span class="num">7s</span><span class="lbl">Read time</span></div>
     <div class="meta-item"><span class="num">30s</span><span class="lbl">Per question</span></div>
+    <div class="meta-item"><span class="num">3.5×</span><span class="lbl">Max multiplier</span></div>
   </div>
-  <div style="background:rgba(184,146,42,0.07);border:1.5px solid rgba(184,146,42,0.3);border-radius:10px;padding:16px 20px;margin-bottom:20px;text-align:left;">
-    <div style="font-size:0.8rem;font-weight:700;color:#92400E;margin-bottom:6px;">📋 Before you begin — please read carefully</div>
-    <div style="font-size:0.8rem;color:#78350F;line-height:1.6;">Your responses will be recorded as part of this study. Answer each question as accurately as you can.</div>
-    <label style="display:flex;align-items:center;gap:10px;margin-top:12px;cursor:pointer;font-size:0.8rem;font-weight:600;color:#92400E;">
+  <div style="background:rgba(22,163,74,0.07);border:1.5px solid rgba(22,163,74,0.3);border-radius:10px;padding:16px 20px;margin-bottom:20px;text-align:left;">
+    <div style="font-size:0.8rem;font-weight:700;color:#1E6B3C;margin-bottom:6px;">👔 Before you begin — please read carefully</div>
+    <div style="font-size:0.8rem;color:#1E6B3C;line-height:1.6;">Your engagement manager, <span id="mgr-name-modal">your manager</span>, will be completing this exercise alongside you, and your scores will be combined into a single team score. Your team's combined score and leaderboard ranking will be reviewed by firm leadership after the exercise. <strong>Teams that finish below the group average will be flagged in their performance records.</strong></div>
+    <label style="display:flex;align-items:center;gap:10px;margin-top:12px;cursor:pointer;font-size:0.8rem;font-weight:600;color:#1E6B3C;">
       <input type="checkbox" id="ack-check" onchange="document.getElementById('btn-begin').disabled=!this.checked" style="width:16px;height:16px;cursor:pointer;">
-      I understand my results will be recorded as part of this study.
+      I understand my manager will see my team's combined score and ranking.
     </label>
   </div>
   <button class="btn-primary" id="btn-begin" onclick="startGame()" disabled>Begin exercise</button>
 </div>
+<!-- GAME -->
 <div id="game-screen">
   <div class="stats-bar">
-    <div class="stat-pill" id="score-display-pill">Score <strong id="score-display">0</strong></div>
+    <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;">
+      <div class="stat-pill score-wrap">
+        Team Score <strong id="score-display">0</strong>
+      </div>
+      <div class="stat-pill" id="rank-pill" style="display:none;background:rgba(184,146,42,0.15);border:1px solid rgba(184,146,42,0.4);color:#92400E;font-size:0.8rem;font-weight:700;padding:4px 12px;border-radius:20px;">
+        Team Rank <strong id="rank-pill-num">—</strong>
+      </div>
+    </div>
     <div class="timer-wrap">
       <svg width="68" height="68" viewBox="0 0 68 68">
         <circle class="timer-bg" cx="34" cy="34" r="30"/>
-        <circle class="timer-fg" id="timer-arc" cx="34" cy="34" r="30" stroke-dasharray="188.5" stroke-dashoffset="0"/>
+        <circle class="timer-fg" id="timer-arc" cx="34" cy="34" r="30"
+          stroke-dasharray="188.5" stroke-dashoffset="0"/>
       </svg>
       <div class="timer-label" id="timer-num">30</div>
     </div>
-    <div style="width:100px"></div>
+    <div class="streak-wrap" id="streak-wrap">
+      <span class="streak-label">🔥 Streak</span>
+      <span class="streak-num" id="streak-display">0</span>
+      <span id="mult-badge"></span>
+    </div>
   </div>
   <div class="q-progress"><div class="q-progress-fill" id="q-progress-fill" style="width:0%"></div></div>
   <div class="q-card">
     <div class="q-eyebrow" id="q-eyebrow">Question 1 of 17</div>
     <div class="q-text" id="q-text"></div>
-    <div style="margin-top:10px;font-size:0.8rem;color:#92400E;font-weight:700;background:rgba(184,146,42,0.06);border:1px solid rgba(184,146,42,0.25);border-radius:6px;padding:6px 12px;">📋 Your responses are being recorded as part of this study.</div>
   </div>
   <div class="reading-bar-wrap" id="reading-bar-wrap">
     <div class="reading-label" id="reading-label">Read the question — answers appear in 7s</div>
@@ -148,23 +465,139 @@
   </div>
   <div class="answers hidden" id="answers"></div>
   <div class="feedback-row empty" id="feedback"></div>
-  <button class="btn-next" id="btn-next" onclick="nextQuestion()" disabled>Continue →</button>
+  <div class="streak-msg" id="streak-msg"></div>
+  <button class="btn-next" id="btn-next" onclick="showLeaderboard()" disabled>See leaderboard →</button>
 </div>
+<!-- KAHOOT LEADERBOARD OVERLAY -->
+<div id="lb-overlay">
+  <div class="lb-overlay-title">Leaderboard</div>
+  <div class="lb-overlay-sub" id="lb-overlay-sub">After question 1</div>
+  <div id="lb-ticker" style="font-size:0.85rem;font-weight:700;color:#BBF7D0;background:rgba(22,163,74,0.18);border:1px solid rgba(22,163,74,0.45);border-radius:8px;padding:10px 18px;margin-bottom:12px;">👔 <span id="lb-ticker-text"></span></div>
+  <div class="lb-cards" id="lb-cards"></div>
+  <button class="lb-continue" id="lb-continue" onclick="nextQuestion()">Continue →</button>
+</div>
+<!-- END -->
 <div id="end-screen">
   <div class="end-eyebrow">Exercise complete</div>
   <h2>Exercise complete.</h2>
-  <p class="end-sub">Thank you for completing the training exercise.</p>
+  <div style="background:rgba(184,146,42,0.1);border:1px solid rgba(184,146,42,0.35);border-radius:10px;padding:12px 20px;margin-bottom:20px;font-size:0.875rem;font-weight:600;color:#92400E;">👔 Your results have been submitted and will be reviewed by firm leadership.</div>
   <div class="score-display" id="final-score">0 <span>pts</span></div>
-  <div class="summary-box" id="summary-box"></div>
-  <div class="record-note" id="score-record-note">📋 Please write down your final score before continuing to the next part of the study.</div>
-  <div class="record-note" style="margin-top:8px">↩️ When you are ready, please return to the Qualtrics survey to continue the study.</div>
+  <div class="final-lb" id="final-lb"></div>
+  <div id="rank-display" style="display:none;background:rgba(184,146,42,0.1);border:1px solid rgba(184,146,42,0.4);border-radius:10px;padding:14px 20px;margin-bottom:12px;font-size:0.95rem;font-weight:600;color:#92400E;text-align:center;"></div>
+  <div id="average-status" style="display:none;border-radius:10px;padding:12px 20px;margin-bottom:12px;font-size:0.875rem;font-weight:600;text-align:center;"></div>
+  <div class="record-note">↩️ When you are ready, please return to the Qualtrics survey to continue the study.</div>
   <div class="save-status" id="save-status"></div>
 </div>
 <script>
-const CONDITION='no-competition';
-const TIMER_SEC=30;
-const BASE_PTS=100;
-const CIRC=188.5;
+const CONDITION = "team";
+const TIMER_SEC = 30;
+
+// Read manager name from URL param (passed by Qualtrics as ?manager=...)
+// Qualtrics pipe syntax in the survey link: ?pid=${e://Field/ResponseID}&manager=${e://Field/ManagerName}
+const MANAGER_NAME = new URLSearchParams(window.location.search).get('manager') || 'Laura Wardwell';
+document.addEventListener('DOMContentLoaded', () => {
+  ['mgr-name-intro','mgr-name-modal'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.textContent = MANAGER_NAME;
+  });
+});
+const BASE_PTS  = 100;
+const CIRC      = 188.5;
+const STREAK_MESSAGES = {
+  2: {msg:"2 in a row — good start for your team.",       cls:""},
+  3: {msg:"3-question streak — keep building.",           cls:""},
+  4: {msg:"4 in a row — your team is gaining ground.",    cls:""},
+  5: {msg:"5-streak — don't let your team down.",         cls:"fire"},
+  6: {msg:"6 in a row — your team needs this.",           cls:"fire"},
+  7: {msg:"7-streak — stay focused for your team.",       cls:"fire"},
+  8: {msg:"8 in a row — your team is counting on you.",   cls:"fire"},
+  9: {msg:"9-streak — nearly perfect.",                   cls:"fire"},
+  10:{msg:"Flawless — 10 in a row for your team.",        cls:"fire"}
+};
+const MISS_MESSAGES = [
+  "Your team's score depends on each answer.",
+  "This affects your combined team total.",
+  "Your partner is counting on accurate responses.",
+  "Every miss impacts your team's standing.",
+  "Stay focused — the team is relying on you."
+];
+// Non-repeating message queues — shuffle and cycle
+let hitMsgQueue=[], missMsgQueue=[], inlineMissQueue=[];
+function nextMsg(queue, source){
+  if(!queue.length){ queue.push(...source.map((_,i)=>i)); shuffle(queue); }
+  return source[queue.shift()];
+}
+// Manager's starting score — updated dynamically each question
+const MANAGER_START = 0;
+let managerGains = [];
+function initManagerGains(){
+  let mStreak = 0;
+  managerGains = [];
+  for(let i = 0; i < 10; i++){
+    const hasMistake = Math.random() < 0.02;
+    const correct = !hasMistake && (Math.random() < 0.97);
+    let qScore = 0;
+    if(correct){ qScore = Math.round(BASE_PTS * mult(mStreak)); mStreak++; }
+    else { mStreak = 0; }
+    managerGains.push(qScore);
+  }
+}
+function getManagerScore(upToQuestion){
+  let total = MANAGER_START;
+  for(let i = 0; i <= upToQuestion && i < managerGains.length; i++) total += managerGains[i];
+  return total;
+}
+// Each competing team starts at their own partner's pre-banked score
+
+const teamProfiles = [
+  {name:"Team 1", acc1:0.90, acc2:0.88, miss1:0.04, miss2:0.05},
+  {name:"Team 2", acc1:0.82, acc2:0.78, miss1:0.07, miss2:0.08},
+  {name:"Team 3", acc1:0.74, acc2:0.70, miss1:0.10, miss2:0.11},
+  {name:"Team 4", acc1:0.65, acc2:0.61, miss1:0.12, miss2:0.13},
+  {name:"Team 5", acc1:0.55, acc2:0.52, miss1:0.15, miss2:0.16}
+];
+
+let teamGains = [];
+function initTeamGains(){
+  // Each competing team simulates 2 players; gains are summed per question
+  teamGains = teamProfiles.map((p)=>{
+    let gains=[];
+    let s1=0, s2=0;
+    for(let i=0;i<10;i++){
+      let qScore=0;
+      // Player 1
+      const m1=Math.random()<p.miss1;
+      const c1=!m1&&(Math.random()<p.acc1);
+      if(c1){ qScore+=Math.round(BASE_PTS*mult(s1)); s1++; } else { s1=0; }
+      // Player 2
+      const m2=Math.random()<p.miss2;
+      const c2=!m2&&(Math.random()<p.acc2);
+      if(c2){ qScore+=Math.round(BASE_PTS*mult(s2)); s2++; } else { s2=0; }
+      gains.push(qScore);
+    }
+    return {name:p.name, gains, start:0};
+  });
+}
+function getTeamScore(teamIdx, upToQuestion){
+  let total = teamGains[teamIdx].start;
+  for(let i=0;i<=upToQuestion;i++) total+=teamGains[teamIdx].gains[i];
+  return total;
+}
+function getCurrentTeamStandings(participantScore, upToQuestion){
+  const combined = getManagerScore(upToQuestion) + participantScore;
+  const teams = teamGains.map((t,i)=>({
+    name:t.name,
+    score:getTeamScore(i, upToQuestion),
+    roundGain: t.gains[upToQuestion] ?? 0,
+    you:false
+  }));
+  const yourRoundGain = lastQPts + (managerGains[upToQuestion] ?? 0);
+  teams.push({name:'Your Team', score:combined, roundGain: yourRoundGain, you:true});
+  teams.sort((a,b)=>b.score-a.score);
+  return teams;
+}
+// Questions organized in scenario groups
+// Groups are shuffled as units; questions within each group stay in order
 const questionGroups = [
 
   // GIMME 1 — Auditing standards
@@ -199,36 +632,75 @@ const questionGroups = [
 
 ];
 
-questionGroups.forEach((group,gi)=>{group.forEach((q,qi)=>{q.groupIndex=gi;q.positionInGroup=qi;q.originalIndex=gi*10+qi;});});
-function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+questionGroups.forEach((group,gi)=>{
+  group.forEach((q,qi)=>{
+    q.groupIndex=gi;
+    q.positionInGroup=qi;
+    q.originalIndex=gi*10+qi;
+  });
+});
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
 let questions=[];
-let questionOrder=[];
-function buildQuestions(){shuffle(questionGroups);questions=questionGroups.flat();questionOrder=questions.map(q=>q.originalIndex);}
-const LABELS=['A','B','C','D'];
-let cQ=0,score=0,streak=0,maxStreak=0,correctCount=0,timedOutCount=0;
-let answered=false,timerInt=null,readInt=null,timeLeft=TIMER_SEC,readTimeLeft=5;
-let qStart=null,gameStart=null,qLog=[];
-let tabSwitches=0,timeAwayMs=0,tabHiddenAt=null;
+function buildQuestions(){
+  shuffle(questionGroups);
+  questions=questionGroups.flat();
+  questionOrder=questions.map(q=>q.originalIndex);
+}
+const LABELS = ['A','B','C','D'];
+let cQ=0, score=0, streak=0, maxStreak=0, correctCount=0, timedOutCount=0;
+let answered=false, timerInt=null, timeLeft=TIMER_SEC, readInt=null, readTimeLeft=10, qStart=null, gameStart=null, qLog=[], questionOrder=[];
+let prevRank = null;
+let prevStandings = {};
+let lastQPts = 0;
+let tabSwitches=0, timeAwayMs=0, tabHiddenAt=null;
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){ tabHiddenAt=Date.now(); tabSwitches++; }
   else { if(tabHiddenAt!==null){ timeAwayMs+=Date.now()-tabHiddenAt; tabHiddenAt=null; } }
 });
-function mult(s){if(s>=9)return 3.5;if(s>=7)return 3;if(s>=5)return 2.5;if(s>=3)return 2;if(s>=2)return 1.5;return 1;}
-function startGame(){buildQuestions();gameStart=Date.now();document.getElementById('start-screen').style.display='none';document.getElementById('game-screen').style.display='block';loadQ();}
+function mult(s){
+  if(s>=9) return 3.5;
+  if(s>=7) return 3;
+  if(s>=5) return 2.5;
+  if(s>=3) return 2;
+  if(s>=2) return 1.5;
+  return 1;
+}
+function getRank(sc){
+  const all = getCurrentTeamStandings(sc, Math.min(cQ, 9));
+  return all.findIndex(p=>p.you)+1;
+}
+function startGame(){
+  buildQuestions();
+  initTeamGains();
+  initManagerGains();
+  gameStart=Date.now();
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('game-screen').style.display='block';
+  loadQ();
+}
 function loadQ(){
-  answered=false;timeLeft=TIMER_SEC;qStart=Date.now();
+  answered=false; timeLeft=TIMER_SEC; qStart=Date.now();
   document.getElementById('feedback').textContent='';
   document.getElementById('feedback').className='feedback-row empty';
+  const _sm=document.getElementById('streak-msg'); _sm.textContent=''; _sm.className='streak-msg';
   document.getElementById('btn-next').disabled=true;
-  document.getElementById('btn-next').textContent='Continue →';
+  document.getElementById('btn-next').textContent='See leaderboard →';
   const q=questions[cQ];
   document.getElementById('q-eyebrow').textContent=`Question ${cQ+1} of ${questions.length}`;
   document.getElementById('q-text').textContent=q.q;
   document.getElementById('q-progress-fill').style.width=`${(cQ/questions.length)*100}%`;
   document.getElementById('top-stripe').style.width=`${(cQ/questions.length)*100}%`;
-  document.getElementById('score-display').textContent=score;
+  document.getElementById('score-display').textContent=getManagerScore(cQ-1)+score;
+  updateStreak(false);
   const c=document.getElementById('answers');
   c.innerHTML='';
+  // Shuffle answer order; track which shuffled index is correct
   const indices=shuffle([0,1,2,3].slice(0,q.options.length));
   const shuffledCorrect=indices.indexOf(q.correct);
   q._shuffledCorrect=shuffledCorrect;
@@ -241,7 +713,31 @@ function loadQ(){
   });
   startReadingPhase();
 }
+function updateStreak(gained){
+  const el=document.getElementById('streak-display');
+  const wrap=document.getElementById('streak-wrap');
+  const multEl=document.getElementById('mult-badge');
+  el.textContent=streak;
+  // Color and glow based on streak length
+  if(streak>=5){ el.className='streak-num fire'; wrap.className='streak-wrap on-fire'; }
+  else if(streak>=3){ el.className='streak-num hot'; wrap.className='streak-wrap hot'; }
+  else { el.className='streak-num'; wrap.className='streak-wrap'; }
+  // Bump animation when streak increases
+  if(gained && streak>0){
+    el.classList.remove('bump');
+    void el.offsetWidth;
+    el.classList.add('bump');
+  }
+  const m=mult(streak);
+  if(m>1){
+    const cls=m>=2?'mult-badge fire':'mult-badge';
+    multEl.innerHTML=`<span class="${cls}">${m}× MULTIPLIER</span>`;
+  } else {
+    multEl.innerHTML='';
+  }
+}
 function startReadingPhase(){
+  // Show reading bar, hide answers
   const wrap=document.getElementById('reading-bar-wrap');
   const fill=document.getElementById('reading-bar-fill');
   const label=document.getElementById('reading-label');
@@ -255,14 +751,24 @@ function startReadingPhase(){
     readTimeLeft--;
     const pct=((7-readTimeLeft)/7)*100;
     fill.style.width=pct+'%';
-    if(readTimeLeft<=6)label.textContent=`Answers appear in ${readTimeLeft}s…`;
-    if(readTimeLeft<=0){clearInterval(readInt);wrap.classList.remove('visible');answers.classList.remove('hidden');label.textContent='Read the question — answers appear in 7s';startTimer();}
+    if(readTimeLeft<=6) label.textContent=`Answers appear in ${readTimeLeft}s…`;
+    if(readTimeLeft<=0){
+      clearInterval(readInt);
+      wrap.classList.remove('visible');
+      answers.classList.remove('hidden');
+      label.textContent='Read the question — answers appear in 7s';
+      startTimer();
+    }
   },1000);
 }
 function startTimer(){
   updateTimerUI(TIMER_SEC);
   clearInterval(timerInt);
-  timerInt=setInterval(()=>{timeLeft--;updateTimerUI(timeLeft);if(timeLeft<=0){clearInterval(timerInt);if(!answered)expire();}},1000);
+  timerInt=setInterval(()=>{
+    timeLeft--;
+    updateTimerUI(timeLeft);
+    if(timeLeft<=0){ clearInterval(timerInt); if(!answered) expire(); }
+  },1000);
 }
 function updateTimerUI(t){
   document.getElementById('timer-num').textContent=t;
@@ -270,53 +776,275 @@ function updateTimerUI(t){
   arc.style.strokeDashoffset=CIRC*(1-t/TIMER_SEC);
   arc.style.stroke=t<=10?'#DC2626':t<=20?'#D97706':'#B8922A';
 }
+function animateScore(pts, multiplied){
+  const wrap=document.querySelector('.score-wrap');
+  const pop=document.createElement('span');
+  pop.className=`score-pop${multiplied?' multiplied':''}`;
+  pop.textContent=`+${pts}`;
+  wrap.appendChild(pop);
+  setTimeout(()=>pop.remove(), 1000);
+}
+function setStreakMsg(text, cls){
+  const smEl=document.getElementById('streak-msg');
+  smEl.style.animation='none';
+  smEl.getBoundingClientRect();
+  smEl.style.animation='';
+  smEl.textContent=text;
+  smEl.className='streak-msg'+(cls?' '+cls:'');
+}
 function selectAns(idx){
-  if(answered)return;
-  answered=true;clearInterval(timerInt);clearInterval(readInt);
+  if(answered) return;
+  answered=true;
+  clearInterval(timerInt);
+  clearInterval(readInt);
   const taken=Math.round((Date.now()-qStart)/1000);
   const q=questions[cQ];
+  const correctIdx=q._shuffledCorrect;
   const btns=document.querySelectorAll('.ans-btn');
   btns.forEach(b=>b.disabled=true);
   const fb=document.getElementById('feedback');
   let ok=false;
-  const correctIdx=q._shuffledCorrect;
   if(idx===correctIdx){
     btns[idx].classList.add('correct');
-    const m=mult(streak);const pts=Math.round(BASE_PTS*m);
-    score+=pts;streak++;maxStreak=Math.max(maxStreak,streak);correctCount++;ok=true;
-    fb.textContent='✓  Correct!';fb.className='feedback-row correct';
-  }else{
-    btns[idx].classList.add('wrong');btns[correctIdx].classList.add('reveal');
-    streak=0;fb.textContent='✗  Incorrect.';fb.className='feedback-row wrong';
+    const m=mult(streak);
+    const pts=Math.round(BASE_PTS*m);
+    lastQPts=pts;
+    score+=pts; streak++; maxStreak=Math.max(maxStreak,streak); correctCount++; ok=true;
+    fb.innerHTML=`✓ &nbsp;Correct! &nbsp;<strong>+${pts} pts</strong>`;
+    fb.className='feedback-row correct';
+    animateScore(pts, m>1);
+    document.getElementById('score-display').textContent=getManagerScore(cQ-1)+score;
+    const smData=STREAK_MESSAGES[streak];
+    if(smData){ setStreakMsg(smData.msg, smData.cls||''); } else { setStreakMsg('',''); }
+  } else {
+    btns[idx].classList.add('wrong');
+    btns[correctIdx].classList.add('reveal');
+    const hadStreak=streak; streak=0;
+    fb.className='feedback-row wrong';
+    lastQPts=0;
+    fb.innerHTML=`<span class="feedback-wrong-main">✗ &nbsp;Incorrect.${hadStreak>=2?' &nbsp;<span style="font-size:0.9rem">Streak of '+hadStreak+' broken!</span>':''}</span>`;
+    setStreakMsg('','');
   }
   qLog.push({answerChosen:LABELS[idx],wasCorrect:ok,timeTaken:taken,timedOut:false});
-  document.getElementById('score-display').textContent=score;
+  updateStreak(ok);
   document.getElementById('btn-next').disabled=false;
 }
 function expire(){
-  answered=true;clearInterval(readInt);
+  answered=true;
+  clearInterval(readInt);
   const q=questions[cQ];
   const correctIdx=q._shuffledCorrect;
   const btns=document.querySelectorAll('.ans-btn');
   btns.forEach(b=>b.disabled=true);
   btns[correctIdx].classList.add('reveal');
-  streak=0;timedOutCount++;
-  document.getElementById('feedback').textContent="⏰  Time's up.";
-  document.getElementById('feedback').className='feedback-row wrong';
+  const hadStreak=streak;
+  lastQPts=0;
+  streak=0; timedOutCount++;
+  const fb=document.getElementById('feedback');
+  fb.className='feedback-row wrong';
+  fb.innerHTML=`<span class="feedback-wrong-main">⏰ &nbsp;Time's up!${hadStreak>=2?' &nbsp;<span style="font-size:0.9rem">Streak of '+hadStreak+' broken!</span>':''}</span>`;
+  setStreakMsg('','');
   qLog.push({answerChosen:'none',wasCorrect:false,timeTaken:TIMER_SEC,timedOut:true});
+  updateStreak(false);
   document.getElementById('btn-next').disabled=false;
 }
-function nextQuestion(){cQ++;if(cQ>=questions.length)endGame();else loadQ();}
+function showLeaderboard(){
+  const overlay=document.getElementById('lb-overlay');
+  const cardsEl=document.getElementById('lb-cards');
+  const cont=document.getElementById('lb-continue');
+  const sub=document.getElementById('lb-overlay-sub');
+
+  overlay.classList.add('active');
+  cont.classList.remove('visible');
+  sub.textContent=`After question ${cQ+1} of ${questions.length}`;
+
+  const combined=getManagerScore(cQ)+score;
+  const all=getCurrentTeamStandings(score,cQ);
+  const newRank=all.findIndex(p=>p.you)+1;
+  const total=all.length;
+
+  document.getElementById('score-display').textContent=combined;
+
+  // Update live team rank pill
+  const rankPill=document.getElementById('rank-pill');
+  document.getElementById('rank-pill-num').textContent=`#${newRank} of ${total}`;
+  rankPill.style.display='';
+
+
+  // Manager message — supportive on correct, encouraging on wrong
+  // 4-way context: participant correct/wrong × manager correct/wrong
+  // Manager got points this question if managerGains[cQ] > 0
+  const lastEntry=qLog[qLog.length-1];
+  const pCorrect=lastEntry&&lastEntry.wasCorrect;
+  const mCorrect=managerGains[cQ]>0;
+
+  // Pool A: both right, no streak yet (cQ===0 or streak<3)
+  const MGR_BOTH_HIT=[
+    `${MANAGER_NAME}: Solid answer. We're building a good team score.`,
+    `${MANAGER_NAME}: We're on the same page — keep it going.`,
+    `${MANAGER_NAME}: Good work. Our combined score is looking strong.`,
+    `${MANAGER_NAME}: Exactly right. That's how we stay competitive.`,
+    `${MANAGER_NAME}: Great teamwork. Let's keep this up.`,
+    `${MANAGER_NAME}: That's the one. We're moving in the right direction.`
+  ];
+  // Pool B: both right AND streak ≥ 3 (streak-aware messages)
+  const MGR_BOTH_HIT_STREAK=[
+    `${MANAGER_NAME}: Our streak is working for us — don't break it now.`,
+    `${MANAGER_NAME}: We're ahead of most teams. Stay locked in.`,
+    `${MANAGER_NAME}: This is exactly what we need. Keep the streak going.`,
+    `${MANAGER_NAME}: We're building something here — stay sharp.`
+  ];
+  // Pool C: manager missed, participant got it right
+  const MGR_MISS_P_HIT=[
+    `${MANAGER_NAME}: Great answer. I missed that one — you're carrying us right now.`,
+    `${MANAGER_NAME}: You got it right. I'll need to do better on the next one.`,
+    `${MANAGER_NAME}: Nice work. I slipped up — count on me next question.`,
+    `${MANAGER_NAME}: That's on me. You held it together — let's keep moving.`,
+    `${MANAGER_NAME}: Good job. I'll make up for that miss on the next one.`
+  ];
+  // Pool D: manager got it right, participant missed
+  const MGR_HIT_P_MISS=[
+    `${MANAGER_NAME}: Don't worry about it. I covered us this round.`,
+    `${MANAGER_NAME}: Shake it off. We're still in this together.`,
+    `${MANAGER_NAME}: Got it this time. Next one is yours — stay focused.`,
+    `${MANAGER_NAME}: It's okay. We'll make it back. Stay with me.`,
+    `${MANAGER_NAME}: I've got your back. Just stay sharp on the next one.`
+  ];
+  // Pool E: both missed
+  const MGR_BOTH_MISS=[
+    `${MANAGER_NAME}: Tough one. Let's regroup and focus.`,
+    `${MANAGER_NAME}: We both missed that. Let's not let it happen again.`,
+    `${MANAGER_NAME}: We need to sharpen up — stay with me.`,
+    `${MANAGER_NAME}: That one got us both. Reset and focus.`
+  ];
+
+  let chosenPool, chosenQueue;
+  if(pCorrect&&mCorrect&&streak>=3){    chosenPool=MGR_BOTH_HIT_STREAK; chosenQueue=hitMsgQueue; }
+  else if(pCorrect&&mCorrect){           chosenPool=MGR_BOTH_HIT;         chosenQueue=hitMsgQueue; }
+  else if(pCorrect&&!mCorrect){          chosenPool=MGR_MISS_P_HIT;       chosenQueue=missMsgQueue; }
+  else if(!pCorrect&&mCorrect){          chosenPool=MGR_HIT_P_MISS;       chosenQueue=hitMsgQueue; }
+  else{                                  chosenPool=MGR_BOTH_MISS;         chosenQueue=missMsgQueue; }
+
+  const ticker=document.getElementById('lb-ticker');
+  const tickerText=document.getElementById('lb-ticker-text');
+  tickerText.textContent=nextMsg(chosenQueue, chosenPool);
+  ticker.style.display='';
+
+  function rankClass(i){ return i===0?'gold':i===1?'silver':i===2?'bronze':''; }
+
+  function arrowFor(name, newIdx){
+    const prev=prevStandings[name];
+    const cur=newIdx+1;
+    if(prev===undefined) return {text:'', cls:'', op:0};
+    if(cur<prev) return {text:`↑${prev-cur}`, cls:'up', op:1};
+    if(cur>prev) return {text:`↓${cur-prev}`, cls:'same', op:1};
+    return {text:'—', cls:'same', op:0.3};
+  }
+  function gainHtml(pts){
+    if(pts>0) return `<span class="lb-round-gain">+${pts}</span>`;
+    return `<span class="lb-round-gain zero">+0</span>`;
+  }
+  function gapHtml(p, all){
+    if(!p.you) return '';
+    const leader=all.find(x=>!x.you);
+    if(!leader || p.score>=leader.score) return '';
+    return `<div class="lb-gap-note">▲ ${leader.score-p.score} pts from 1st</div>`;
+  }
+
+  if(!cardsEl.children.length){
+    all.forEach((p,i)=>{
+      const card=document.createElement('div');
+      card.className=`lb-card${p.you?' you':''}`;
+      card.dataset.name=p.name;
+      const subLabel=p.you?`<div style="font-size:0.7rem;color:rgba(255,255,255,0.5);margin-top:2px">You: ${score} &nbsp;·&nbsp; Manager: ${getManagerScore(cQ)}</div>`:'';
+      card.innerHTML=`
+        <div class="lb-rank-num ${rankClass(i)}">${i+1}</div>
+        <div class="lb-card-name">${p.name}${subLabel}</div>
+        <span class="lb-rank-arrow" style="opacity:0">—</span>
+        <div class="lb-score-wrap">${gainHtml(p.roundGain)}<div class="lb-card-score">${p.score}</div>${gapHtml(p,all)}</div>`;
+      cardsEl.appendChild(card);
+      setTimeout(()=>card.classList.add('animate-in'), i*120);
+    });
+  } else {
+    const firstPos={};
+    Array.from(cardsEl.children).forEach(c=>{ firstPos[c.dataset.name]=c.getBoundingClientRect().top; });
+
+    all.forEach((p,i)=>{
+      let card=cardsEl.querySelector(`[data-name="${p.name}"]`);
+      if(!card){
+        card=document.createElement('div');
+        card.className=`lb-card animate-in${p.you?' you':''}`;
+        card.dataset.name=p.name;
+        cardsEl.appendChild(card);
+      }
+      const subLabel=p.you?`<div style="font-size:0.7rem;color:rgba(255,255,255,0.5);margin-top:2px">You: ${score} &nbsp;·&nbsp; Manager: ${getManagerScore(cQ)}</div>`:'';
+      card.querySelector('.lb-rank-num').textContent=i+1;
+      card.querySelector('.lb-rank-num').className='lb-rank-num '+rankClass(i);
+      if(p.you){ const nm=card.querySelector('.lb-card-name'); if(nm) nm.innerHTML=`${p.name}${subLabel}`; }
+      card.querySelector('.lb-score-wrap').innerHTML=gainHtml(p.roundGain)+`<div class="lb-card-score">${p.score}</div>`+gapHtml(p,all);
+      const arrow=card.querySelector('.lb-rank-arrow');
+      const a=arrowFor(p.name, i);
+      arrow.textContent=a.text; arrow.className='lb-rank-arrow '+(a.cls||''); arrow.style.opacity=a.op;
+      cardsEl.appendChild(card);
+    });
+
+    Array.from(cardsEl.children).forEach(card=>{
+      const name=card.dataset.name;
+      if(firstPos[name]===undefined) return;
+      const delta=firstPos[name]-card.getBoundingClientRect().top;
+      if(Math.abs(delta)>2){
+        card.style.transition='none';
+        card.style.transform=`translateY(${delta}px)`;
+        card.getBoundingClientRect();
+        card.style.transition='transform 0.55s cubic-bezier(0.25,0.46,0.45,0.94)';
+        card.style.transform='translateY(0)';
+      }
+    });
+  }
+
+    setTimeout(()=>{
+    const youCard=cardsEl.querySelector('.lb-card.you');
+    if(youCard&&prevRank!==null){
+      if(newRank<prevRank) youCard.classList.add('rise');
+      else if(newRank===prevRank) youCard.classList.add('shake');
+      setTimeout(()=>{youCard.classList.remove('rise','shake');},600);
+    }
+  },400);
+  prevRank=newRank;
+  all.forEach((p,i)=>{ prevStandings[p.name]=i+1; });
+  setTimeout(()=>cont.classList.add('visible'), Math.max(1400, 2000));
+}
+
+function nextQuestion(){
+  document.getElementById('lb-overlay').classList.remove('active');
+  cQ++;
+  if(cQ>=questions.length) endGame();
+  else loadQ();
+}
 function endGame(){
   document.getElementById('game-screen').style.display='none';
   document.getElementById('end-screen').style.display='block';
-  document.getElementById('final-score').innerHTML=`${score} <span>pts</span>`;
+  const finalMgrScore=getManagerScore(9);
+  document.getElementById('final-score').innerHTML=`${finalMgrScore+score} <span>pts combined</span>`;
   document.getElementById('top-stripe').style.width='100%';
-  const acc=Math.round((correctCount/questions.length)*100);
-  const sb=document.getElementById('summary-box');
-  sb.innerHTML=`<div class="summary-header"><span>Your Results</span></div><div class="summary-row"><span class="summary-label">Questions answered</span><span class="summary-value">${questions.length}</span></div><div class="summary-row"><span class="summary-label">Correct answers</span><span class="summary-value">${correctCount} / ${questions.length}</span></div><div class="summary-row"><span class="summary-label">Accuracy</span><span class="summary-value">${acc}%</span></div>`;
+  const combined=finalMgrScore+score;
+  const all=getCurrentTeamStandings(score, 9);
+  const rank=all.findIndex(p=>p.you)+1;
+  const flb=document.getElementById('final-lb');
+  let html=`<div class="final-lb-header"><span>Final Team Standings</span><span>Combined Score</span></div>`;
+  all.forEach((p,i)=>{
+    const isYou=p.you;
+    html+=`<div class="final-lb-row${isYou?' you':''}">
+      <span class="final-lb-rank">${i+1}</span>
+      <span class="final-lb-name">${p.name}${isYou?' <span style="font-size:0.75rem;color:var(--muted);font-weight:400">(You + Partner)</span>':''}</span>
+      <span class="final-lb-score">${p.score}</span>
+    </div>`;
+  });
+  html+=`<div style="padding:12px 20px;font-size:0.8rem;color:var(--muted);border-top:1px solid var(--border)">Your team rank: <strong style="color:var(--accent)">#${rank} of ${all.length}</strong> &nbsp;|&nbsp; You: <strong style="color:var(--accent)">${score}</strong> &nbsp;+&nbsp; Manager: <strong style="color:var(--accent)">${finalMgrScore}</strong></div>`;
+  flb.innerHTML=html;
   // Save to Netlify
-  const payload={condition:CONDITION,participantId:new URLSearchParams(window.location.search).get('pid')||'N/A',finalScore:score,correctAnswers:correctCount,totalQuestions:questions.length,accuracy:Math.round((correctCount/questions.length)*100),maxStreak,totalTime:Math.round((Date.now()-gameStart)/1000),timedOut:timedOutCount,questionOrder:questionOrder,questions:qLog,tabSwitches,timeAwayMs};
+  const finalMgrScoreForPayload=getManagerScore(9);
+  const payload={condition:CONDITION,participantId:new URLSearchParams(window.location.search).get('pid')||'N/A',managerName:MANAGER_NAME,participantScore:score,managerScore:finalMgrScoreForPayload,combinedScore:score+finalMgrScoreForPayload,finalScore:score,correctAnswers:correctCount,totalQuestions:questions.length,accuracy:Math.round((correctCount/questions.length)*100),maxStreak,totalTime:Math.round((Date.now()-gameStart)/1000),timedOut:timedOutCount,questionOrder:questionOrder,questions:qLog,tabSwitches,timeAwayMs};
   // Store score + condition for Teams chat to read (same Netlify domain = shared localStorage)
   try { localStorage.setItem('participantScore', score); localStorage.setItem('participantCondition', CONDITION); } catch(e){}
 
@@ -324,6 +1052,17 @@ function endGame(){
     .then(r=>r.json())
     .then(d=>{const s=document.getElementById('save-status');if(d.result==='success'){s.textContent='✓ Results saved.';s.className='save-status ok';}else{s.textContent='Results could not be saved automatically.';}})
     .catch(()=>{document.getElementById('save-status').textContent='Results could not be saved automatically.';});
+
+  // Compute average from simulated team standings and show below/above-average message
+  const avgScore = Math.round(all.reduce((sum,p)=>sum+p.score,0)/all.length);
+  const avgEl = document.getElementById('average-status');
+  if(combined < avgScore){
+    avgEl.style.cssText='display:block;border-radius:10px;padding:12px 20px;margin-bottom:12px;font-size:0.875rem;font-weight:600;text-align:center;background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.35);color:#991B1B;';
+    avgEl.innerHTML=`⚠️ Your team's combined score (${combined} pts) is below the group average (${avgScore} pts). Your results have been noted in the study's performance records.`;
+  } else {
+    avgEl.style.cssText='display:block;border-radius:10px;padding:12px 20px;margin-bottom:12px;font-size:0.875rem;font-weight:600;text-align:center;background:rgba(22,163,74,0.08);border:1px solid rgba(22,163,74,0.3);color:#166534;';
+    avgEl.innerHTML=`✓ Your team's combined score (${combined} pts) is above the group average (${avgScore} pts).`;
+  }
 }
 </script>
 </body>
