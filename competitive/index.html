@@ -1002,7 +1002,15 @@ function endGame(){
 
   fetch('/.netlify/functions/save-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(r=>r.json())
-    .then(d=>{const s=document.getElementById('save-status');if(d.result==='success'){s.textContent='✓ Results saved.';s.className='save-status ok';}else{s.textContent='Results could not be saved automatically.';}})
+    .then(d=>{
+      const s=document.getElementById('save-status');
+      if(d.result==='success'){
+        s.textContent='✓ Results saved.';
+        s.className='save-status ok';
+        // Signal Qualtrics tab that game is complete
+        try{ if(window.opener&&!window.opener.closed){ window.opener.postMessage('gameComplete','*'); } }catch(e){}
+      } else { s.textContent='Results could not be saved automatically.'; }
+    })
     .catch(()=>{document.getElementById('save-status').textContent='Results could not be saved automatically.';});
 
   // Compute average from simulated standings and show below/above-average message
