@@ -287,7 +287,7 @@
           <span class="msg-group-name" id="init-name">Laura Wardwell</span>
           <span class="msg-group-time" id="init-time"></span>
         </div>
-        <div class="msg-bubble" id="init-msg">Hi, I'm currently working on another client's audit, but send me a message if you need anything and I'll get back to you when I can.</div>
+        <div class="msg-bubble" id="init-msg"></div>
       </div>
     </div>
 
@@ -352,13 +352,34 @@ const _p              = new URLSearchParams(window.location.search);
 const CONTROL_INDEX   = _p.get("control")   || "0";
 const CURRENT_CONTROL = _p.get("name")      || "an internal control";
 const PARTICIPANT_ID  = _p.get("pid")       || "N/A";
-const CONDITION       = _p.get("condition") || "N/A";
+const CONDITION       = _p.get("condition") || (() => { try { return localStorage.getItem('participantCondition') || "no-competition"; } catch(e){ return "no-competition"; } })();
 const MANAGER_NAME    = _p.get("manager")   || "Your Manager";
+
+// Read score saved by game via localStorage (same Netlify domain)
+const PARTICIPANT_SCORE = (() => { try { const s = parseInt(localStorage.getItem('participantScore')); return isNaN(s) ? null : s; } catch(e){ return null; } })();
 
 function getInitials(name) {
   return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 }
 const MANAGER_INITIALS = getInitials(MANAGER_NAME);
+
+function getScoreReaction(score) {
+  if (score >= 800) return "Nice work!";
+  if (score >= 400) return "Not bad.";
+  return "Good effort — that's what the training is for.";
+}
+
+function getInitialMessage(score, condition) {
+  const scorePart = score !== null ? ` ${score} points — ${getScoreReaction(score)}` : "";
+  if (condition === "competitive") {
+    return `Hi — I noticed your score from the training exercise came in at${scorePart} I'm occupied with another engagement right now, but feel free to message me if something comes up.`;
+  }
+  if (condition === "team") {
+    return `Hi — I saw our scores from the training exercise were recorded. You came in at${scorePart} I'm tied up at the moment, but message me if you need anything — we're in this together.`;
+  }
+  // no-competition
+  return `Hi — just wanted to let you know your score from the training exercise was logged.${scorePart} I'm working through some things on my end, but don't hesitate to reach out if you have any questions.`;
+}
 // ─────────────────────────────────────────────────────────────
 
 let conversationHistory = [];
@@ -381,6 +402,7 @@ document.getElementById('typing-avatar').textContent = MANAGER_INITIALS;
 document.getElementById('typing-label').textContent  = MANAGER_NAME + ' is typing…';
 document.getElementById('compose').placeholder = 'Type a message to ' + MANAGER_NAME;
 
+document.getElementById('init-msg').textContent = getInitialMessage(PARTICIPANT_SCORE, CONDITION);
 document.getElementById('init-time').textContent = getTime();
 document.getElementById('date-label').textContent = getDate();
 
