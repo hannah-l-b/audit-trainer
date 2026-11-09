@@ -60,7 +60,7 @@ exports.handler = async function(event) {
       timed_out_count:  data.timedOut,
       question_log:     data.questions,       // stored as JSON
       question_order:   data.questionOrder,   // original indices in order shown
-      partner_score:    data.partnerScore || null,
+      partner_score:    data.partnerScore || data.managerScore || null,
       combined_score:   data.combinedScore || null,
       tab_switches:     data.tabSwitches ?? 0,
       time_away_ms:     data.timeAwayMs ?? 0
