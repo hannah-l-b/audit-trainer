@@ -13,9 +13,12 @@ const CORS = {
   'Content-Type': 'application/json',
 };
 
-function buildSystemPrompt(condition, score) {
-  const scoreKnown = score !== null && score !== undefined;
-  const scoreText  = scoreKnown ? `The participant scored ${score} points on the training exercise.` : '';
+function buildSystemPrompt(condition, score, partnerScore, combinedScore) {
+  const scoreKnown    = score !== null && score !== undefined;
+  const partnerKnown  = partnerScore !== null && partnerScore !== undefined;
+  const combinedKnown = combinedScore !== null && combinedScore !== undefined;
+
+  const scoreText = scoreKnown ? `The participant scored ${score} points on the training exercise.` : '';
 
   const high = scoreKnown && score >= 800;
   const mid  = scoreKnown && score >= 400 && score < 800;
@@ -45,16 +48,46 @@ RULES:
   }
 
   if (condition === 'team') {
-    return `You are Laura Wardwell, a CPA and Audit Manager. You just reached out to a staff auditor on your team after seeing the team's combined score from a training exercise. ${scoreText} The auditor has replied to your message and is about to start the controls review.
+    // Figure out who contributed more to the combined score
+    const participantLed = scoreKnown && partnerKnown && score > partnerScore;
+    const partnerLed     = scoreKnown && partnerKnown && partnerScore > score;
+    const roughly_equal  = scoreKnown && partnerKnown && Math.abs(score - partnerScore) <= 100;
 
-Your tone is warm and collaborative. You are genuinely invested in the team doing well together. Send them into the controls review feeling supported, like you are in it with them.
+    const combinedText = combinedKnown
+      ? `The team's combined score was ${combinedScore} points.`
+      : scoreKnown && partnerKnown
+        ? `The participant scored ${score} and you (Laura) scored ${partnerScore}, for a combined total.`
+        : scoreText;
 
-${high
-  ? 'The team score was strong. Affirm the shared effort briefly and encourage them to carry that into the controls review together.'
-  : mid
-  ? 'The team score was decent. Keep it positive and frame the controls review as a chance to do more together.'
+    const whoLedNote = participantLed
+      ? `The participant scored more than you did (${score} vs ${partnerScore}). They carried more of the weight this round.`
+      : partnerLed
+      ? `You scored more than the participant (${partnerScore} vs ${score}). The participant did not lead on this one.`
+      : roughly_equal
+      ? `You both contributed about equally (${score} vs ${partnerScore}).`
+      : '';
+
+    const combHigh = combinedKnown ? combinedScore >= 1600 : (scoreKnown && score >= 800);
+    const combMid  = combinedKnown ? combinedScore >= 800 && combinedScore < 1600 : (scoreKnown && score >= 400 && score < 800);
+
+    return `You are Laura Wardwell, a CPA and Audit Manager. You just reached out to a staff auditor on your team after seeing the team's combined score from a training exercise. ${combinedText} ${whoLedNote} The auditor has replied to your message and is about to start the controls review.
+
+Your tone is warm and collaborative. You are genuinely invested in the team doing well together. Send them into the controls review feeling supported.
+
+IMPORTANT: When referencing the score, use the COMBINED score (${combinedKnown ? combinedScore : 'total'} points), not just the participant's individual score. If the participant led the scoring, acknowledge their contribution specifically. If you led, do not over-claim credit. If it was equal, frame it as a true shared effort.
+
+${combHigh && participantLed
+  ? 'The combined score was strong and the participant carried more weight. Acknowledge their effort specifically, give them credit, and frame the controls review as continuing that strong work together.'
+  : combHigh && partnerLed
+  ? 'The combined score was strong but you contributed more. Keep it warm and generous, give them credit for their part, and send them into the controls review together.'
+  : combHigh
+  ? 'The combined score was strong. Affirm the shared effort and encourage them to carry that into the controls review together.'
+  : combMid && participantLed
+  ? 'The combined score was decent and the participant did more of the work. Acknowledge that, keep it positive, and frame the controls review as a chance to build on it together.'
+  : combMid
+  ? 'The combined score was decent. Keep it positive and frame the controls review as a chance to do more together.'
   : scoreKnown
-  ? 'The team score was low. Be supportive, frame it as something you can improve on together, and encourage them heading in.'
+  ? 'The combined score was low. Be supportive, frame it as something you can improve on together, and encourage them heading in.'
   : 'Check in warmly and send them into the controls review as a teammate.'}
 
 RULES:
@@ -63,6 +96,7 @@ RULES:
 - Do not use em dashes (—); use commas or periods instead
 - Do not mention that you are an AI or that responses are automated
 - Do not use bullet points or headers
+- Always reference the COMBINED score when mentioning points, never just the participant's individual score
 - Respond to what they said naturally, then send them into the controls review with a team framing`;
   }
 
@@ -97,9 +131,9 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { messages, condition, score, participantId } = JSON.parse(event.body);
+    const { messages, condition, score, partnerScore, combinedScore, participantId } = JSON.parse(event.body);
 
-    const systemPrompt = buildSystemPrompt(condition, score);
+    const systemPrompt = buildSystemPrompt(condition, score, partnerScore, combinedScore);
 
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
