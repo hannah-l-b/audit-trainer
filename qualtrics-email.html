@@ -290,8 +290,8 @@
       <div class="date-sep-line"></div>
     </div>
 
-    <!-- Initial message (always shown) -->
-    <div class="msg-group" id="init-message-row">
+    <!-- Initial greeting — always hidden; intro chat established the conversation -->
+    <div class="msg-group" id="init-message-row" style="display:none;">
       <div class="msg-group-avatar" id="init-avatar">LW</div>
       <div class="msg-group-content">
         <div class="msg-group-header">
@@ -376,6 +376,7 @@ const PROXY_URL = MODE === "intro" ? INTRO_REPLY_URL : MANAGER_REPLY_URL;
 let PARTICIPANT_SCORE = null;
 let MANAGER_SCORE_VAL = null;
 let COMBINED_SCORE    = null;
+let PARTICIPANT_ACCURACY = null;
 
 function getInitials(name) {
   return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
@@ -509,9 +510,10 @@ document.getElementById('date-label').textContent = getDate();
     .then(r => r.json())
     .then(d => {
       if (d.found) {
-        if (d.final_score   != null) PARTICIPANT_SCORE = parseInt(d.final_score);
-        if (d.partner_score != null) MANAGER_SCORE_VAL = parseInt(d.partner_score);
-        if (d.combined_score != null) COMBINED_SCORE   = parseInt(d.combined_score);
+        if (d.final_score    != null) PARTICIPANT_SCORE    = parseInt(d.final_score);
+        if (d.partner_score  != null) MANAGER_SCORE_VAL   = parseInt(d.partner_score);
+        if (d.combined_score != null) COMBINED_SCORE      = parseInt(d.combined_score);
+        if (d.accuracy       != null) PARTICIPANT_ACCURACY = parseFloat(d.accuracy);
       }
       document.getElementById('init-msg').textContent = getInitialMessage(PARTICIPANT_SCORE, CONDITION);
     })
@@ -560,18 +562,10 @@ function restoreHistoryFromSupabase(attempt) {
         if (attempt < 4) setTimeout(() => restoreHistoryFromSupabase(attempt + 1), 4000);
         return;
       }
-      // Move the init greeting into the Earlier section, then hide it from the main area
-      const initRow = document.getElementById('init-message-row');
+      // Show the Earlier section with the full prior conversation
       const histSection = document.getElementById('history-section');
       const histMessages = document.getElementById('history-messages');
       if (histMessages) histMessages.innerHTML = '';
-      // Prepend the Laura greeting as the first item in Earlier
-      if (initRow && histMessages) {
-        const greetingClone = initRow.cloneNode(true);
-        greetingClone.removeAttribute('id');
-        histMessages.appendChild(greetingClone);
-      }
-      if (initRow) initRow.style.display = 'none';
       if (histSection) histSection.style.display = 'block';
       // Do NOT load into conversationHistory — API starts fresh each control
       conversationHistory = [];
@@ -663,6 +657,7 @@ async function sendMessage() {
           score:         PARTICIPANT_SCORE,
           partnerScore:  MANAGER_SCORE_VAL,
           combinedScore: COMBINED_SCORE,
+          accuracy:      PARTICIPANT_ACCURACY,
         } : {
           messages:       conversationHistory,
           currentControl: CURRENT_CONTROL,
