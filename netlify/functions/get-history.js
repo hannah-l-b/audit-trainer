@@ -27,7 +27,10 @@ exports.handler = async (event) => {
   }
 
   try {
-    const url = `${SUPABASE_URL}/rest/v1/chat_sessions?participant_id=eq.${encodeURIComponent(pid)}&control_index=eq.${encodeURIComponent(controlIndex)}&select=messages&limit=1`;
+    // Fetch ALL sessions for this participant where control_index >= 0, ordered by control_index.
+    // We merge them into one continuous conversation so history carries across controls.
+    // Sessions with control_index < 0 (intro chat) are excluded from the control chat view.
+    const url = `${SUPABASE_URL}/rest/v1/chat_sessions?participant_id=eq.${encodeURIComponent(pid)}&control_index=gte.0&select=messages,control_index&order=control_index.asc`;
     const res = await fetch(url, {
       headers: {
         'apikey':        SUPABASE_KEY,
@@ -36,16 +39,28 @@ exports.handler = async (event) => {
     });
 
     const rows = await res.json();
-    console.log('get-history status:', res.status, 'rows:', JSON.stringify(rows));
+    console.log('get-history status:', res.status, 'rows:', rows.length);
 
-    if (!rows.length || !rows[0].messages) {
+    // Filter to only sessions BEFORE the current control (so current control starts fresh
+    // but can see prior controls' messages). Include current control if it already has messages.
+    const currentIdx = parseInt(controlIndex, 10);
+    const relevantRows = rows.filter(r => r.control_index <= currentIdx);
+
+    if (!relevantRows.length) {
+      return { statusCode: 200, headers: { ...CORS, 'Content-Type': 'application/json' }, body: JSON.stringify({ found: false }) };
+    }
+
+    // Merge all messages in order
+    const merged = relevantRows.flatMap(r => r.messages || []);
+
+    if (!merged.length) {
       return { statusCode: 200, headers: { ...CORS, 'Content-Type': 'application/json' }, body: JSON.stringify({ found: false }) };
     }
 
     return {
       statusCode: 200,
       headers: { ...CORS, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ found: true, messages: rows[0].messages })
+      body: JSON.stringify({ found: true, messages: merged })
     };
   } catch (err) {
     return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: err.message }) };
