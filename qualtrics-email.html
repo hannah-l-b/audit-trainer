@@ -346,16 +346,20 @@
 
 <script>
 // ── CONFIG ────────────────────────────────────────────────────
-const PROXY_URL       = "https://audit-trainer.netlify.app/.netlify/functions/manager-reply";
-const GET_SCORE_URL   = "https://audit-trainer.netlify.app/.netlify/functions/get-score";
-const GET_HISTORY_URL = "https://audit-trainer.netlify.app/.netlify/functions/get-history";
+const MANAGER_REPLY_URL = "https://audit-trainer.netlify.app/.netlify/functions/manager-reply";
+const INTRO_REPLY_URL   = "https://audit-trainer.netlify.app/.netlify/functions/intro-reply";
+const GET_SCORE_URL     = "https://audit-trainer.netlify.app/.netlify/functions/get-score";
+const GET_HISTORY_URL   = "https://audit-trainer.netlify.app/.netlify/functions/get-history";
 
 const _p              = new URLSearchParams(window.location.search);
-const CONTROL_INDEX   = _p.get("control")   || "0";
+const MODE            = _p.get("mode")      || "control";   // "intro" or "control"
+const CONTROL_INDEX   = MODE === "intro" ? "-1" : (_p.get("control") || "0");
 const CURRENT_CONTROL = _p.get("name")      || "an internal control";
 const PARTICIPANT_ID  = _p.get("pid")       || "N/A";
 const CONDITION       = _p.get("condition") || "no-competition";
-const MANAGER_NAME    = _p.get("manager")   || "Your Manager";
+const MANAGER_NAME    = _p.get("manager")   || "Laura Wardwell";
+
+const PROXY_URL = MODE === "intro" ? INTRO_REPLY_URL : MANAGER_REPLY_URL;
 
 // Scores fetched from Supabase on load (localStorage blocked in cross-origin iframes)
 let PARTICIPANT_SCORE = null;
@@ -418,7 +422,16 @@ function getTeamMessage(participantScore, managerScore, combinedScore) {
   return `Hey, saw our scores from the exercise were recorded — ${cScore} points combined. Looks like we both had a rough go of it. That's what this training is for. Message me if you have questions.`;
 }
 
+function getControlGreeting() {
+  // Neutral greeting for control-question chats — no score reference
+  return `Hey, let me know if you have any questions about the control you're reviewing. I'll get back to you as soon as I can.`;
+}
+
 function getInitialMessage(score, condition) {
+  // Control mode always shows a neutral greeting (score feedback was in the intro chat)
+  if (MODE === "control") {
+    return getControlGreeting();
+  }
   if (condition === "team") {
     return getTeamMessage(PARTICIPANT_SCORE, MANAGER_SCORE_VAL, COMBINED_SCORE);
   }
@@ -608,7 +621,12 @@ async function sendMessage() {
       fetch(PROXY_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify(MODE === 'intro' ? {
+          messages:      conversationHistory,
+          participantId: PARTICIPANT_ID,
+          condition:     CONDITION,
+          score:         PARTICIPANT_SCORE,
+        } : {
           messages:       conversationHistory,
           currentControl: CURRENT_CONTROL,
           controlIndex:   CONTROL_INDEX,
@@ -627,6 +645,11 @@ async function sendMessage() {
     setTyping(false);
     appendMessage(reply, true);
     statusEl.textContent = '';
+
+    // In intro mode: unlock Qualtrics Next button after first manager reply
+    if (MODE === 'intro') {
+      window.parent.postMessage({ type: 'introChatComplete' }, '*');
+    }
 
   } catch (err) {
     await new Promise(resolve => setTimeout(resolve, typingDuration));
