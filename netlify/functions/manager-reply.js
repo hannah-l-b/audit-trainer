@@ -78,8 +78,8 @@ function buildSystemPrompt(managerName) {
     : `say: "I was wondering about that too, so I asked around. The finance staff member has helped with cash deposit processing twice this year. In both cases, they did not reconcile the same month they processed deposits, and the Controller independently reviewed all reconciliations before finalization."`;
 
   const tooVagueLine = scripts
-    ? `restate the control the auditor is currently reviewing (from "The staff auditor is currently reviewing:" in the system context) in one sentence in your own voice, then ask for a more specific question. Open with: "${scripts.tooVague.split('[RESTATE')[0].trim()}" — do not mention any file, document, or team.`
-    : `restate the control the auditor is currently reviewing (from "The staff auditor is currently reviewing:" in the system context) in one sentence in your own voice, then ask for a more specific question. Do not mention any file, document, or team.`;
+    ? `restate the control the auditor is currently reviewing (from "The staff auditor is currently reviewing:" in the system context) in one sentence in your own voice, then ask for a more specific question. Open with: "${scripts.tooVague.split('[RESTATE')[0].trim()}" — do not mention any file, document, or team. Do NOT give examples of what to ask, do NOT hint at what the issue might be, and do NOT suggest what angle to focus on. Just say what the control is and ask them to be more specific.`
+    : `restate the control the auditor is currently reviewing (from "The staff auditor is currently reviewing:" in the system context) in one sentence in your own voice, then ask for a more specific question. Do not mention any file, document, or team. Do NOT give examples of what to ask, do NOT hint at what the issue might be, and do NOT suggest what angle to focus on. Just say what the control is and ask them to be more specific.`;
 
   const pushyLine = scripts
     ? `say exactly: "${scripts.pushy}"`
