@@ -122,6 +122,33 @@ exports.handler = async (event) => {
 
     const updatedMessages = [...messages, { role: 'assistant', content: reply }];
 
+    // Save Q&A to questions_prolific (control_index -1 = intro chat)
+    const latestQuestion = messages[messages.length - 1].content;
+    const messageNumber  = messages.filter(m => m.role === 'user').length;
+    if (SUPABASE_URL && SUPABASE_KEY && participantId && participantId !== 'N/A') {
+      const qRes = await fetch(`${SUPABASE_URL}/rest/v1/questions_prolific`, {
+        method: 'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          'apikey':        SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Prefer':        'return=minimal',
+        },
+        body: JSON.stringify({
+          participant_id: participantId,
+          condition:      condition   || 'N/A',
+          control_index:  -1,
+          control_name:   'intro_chat',
+          message_number: messageNumber,
+          question:       latestQuestion,
+          reply:          reply,
+        }),
+      });
+      if (!qRes.ok) {
+        console.error('Supabase error (questions_prolific intro):', await qRes.text());
+      }
+    }
+
     // Save intro conversation to chat_sessions under control_index -1
     // (so it's separate from control question chats but loads as prior history)
     if (SUPABASE_URL && SUPABASE_KEY && participantId && participantId !== 'N/A') {
