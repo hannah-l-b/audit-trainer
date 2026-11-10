@@ -280,7 +280,7 @@
     </div>
 
     <!-- Initial message -->
-    <div class="msg-group">
+    <div class="msg-group" id="init-message-row">
       <div class="msg-group-avatar" id="init-avatar">LW</div>
       <div class="msg-group-content">
         <div class="msg-group-header">
@@ -346,8 +346,9 @@
 
 <script>
 // ── CONFIG ────────────────────────────────────────────────────
-const PROXY_URL      = "https://audit-trainer.netlify.app/.netlify/functions/manager-reply";
-const GET_SCORE_URL  = "https://audit-trainer.netlify.app/.netlify/functions/get-score";
+const PROXY_URL       = "https://audit-trainer.netlify.app/.netlify/functions/manager-reply";
+const GET_SCORE_URL   = "https://audit-trainer.netlify.app/.netlify/functions/get-score";
+const GET_HISTORY_URL = "https://audit-trainer.netlify.app/.netlify/functions/get-history";
 
 const _p              = new URLSearchParams(window.location.search);
 const CONTROL_INDEX   = _p.get("control")   || "0";
@@ -491,32 +492,51 @@ document.getElementById('date-label').textContent = getDate();
     });
 })();
 
-// ── RESTORE HISTORY ──
-const HISTORY_KEY = 'managerHistory_' + CONTROL_INDEX;
-const THREAD_KEY  = 'managerThread_'  + CONTROL_INDEX;
+// ── RESTORE HISTORY FROM SUPABASE ──
+// Fetches prior conversation for this pid + control from chat_sessions.
+// If found, hides the initial manager message and replays the conversation.
 
-function saveHistory() {
+function renderRestoredMessage(role, text) {
   const msgs = document.getElementById('messages');
-  sessionStorage.setItem(HISTORY_KEY, JSON.stringify(conversationHistory));
-  const clone = msgs.cloneNode(true);
-  clone.querySelector('#typing-row')?.remove();
-  sessionStorage.setItem(THREAD_KEY, clone.innerHTML);
-}
-
-function restoreHistory() {
-  const savedHistory = sessionStorage.getItem(HISTORY_KEY);
-  const savedThread  = sessionStorage.getItem(THREAD_KEY);
-  if (savedHistory && savedThread) {
-    conversationHistory = JSON.parse(savedHistory);
-    const msgs   = document.getElementById('messages');
-    const typing = document.getElementById('typing-row');
-    msgs.innerHTML = savedThread;
-    msgs.appendChild(typing);
-    msgs.scrollTop = msgs.scrollHeight;
+  const typing = document.getElementById('typing-row');
+  const div = document.createElement('div');
+  if (role === 'assistant') {
+    div.className = 'msg-row';
+    div.innerHTML = `
+      <div class="msg-avatar">${MANAGER_INITIALS}</div>
+      <div class="msg-body">
+        <div class="msg-meta"><span class="msg-name">${MANAGER_NAME}</span><span class="msg-time">${getTime()}</span></div>
+        <div class="msg-bubble manager-bubble">${text}</div>
+      </div>`;
+  } else {
+    div.className = 'msg-row user-row';
+    div.innerHTML = `
+      <div class="msg-body">
+        <div class="msg-meta user-meta"><span class="msg-time">${getTime()}</span></div>
+        <div class="msg-bubble user-bubble">${text}</div>
+      </div>`;
   }
+  msgs.insertBefore(div, typing);
 }
 
-restoreHistory();
+function restoreHistoryFromSupabase() {
+  if (PARTICIPANT_ID === 'N/A') return;
+  fetch(GET_HISTORY_URL + '?pid=' + encodeURIComponent(PARTICIPANT_ID) + '&control=' + encodeURIComponent(CONTROL_INDEX))
+    .then(r => r.json())
+    .then(d => {
+      if (!d.found || !d.messages || !d.messages.length) return;
+      // Hide initial manager message — history replaces it
+      const initMsg = document.getElementById('init-message-row');
+      if (initMsg) initMsg.style.display = 'none';
+      conversationHistory = d.messages;
+      d.messages.forEach(m => renderRestoredMessage(m.role, m.content));
+      const msgs = document.getElementById('messages');
+      msgs.scrollTop = msgs.scrollHeight;
+    })
+    .catch(() => { /* silently fall back to showing init message */ });
+}
+
+restoreHistoryFromSupabase();
 
 function appendMessage(text, isLaura) {
   const msgs   = document.getElementById('messages');
@@ -544,7 +564,6 @@ function appendMessage(text, isLaura) {
 
   msgs.insertBefore(group, typing);
   msgs.scrollTop = msgs.scrollHeight;
-  saveHistory();
 }
 
 function setTyping(visible) {
