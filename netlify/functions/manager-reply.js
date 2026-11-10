@@ -167,9 +167,15 @@ exports.handler = async function(event) {
     const latestQuestion  = messages[messages.length - 1].content;
     const messageNumber   = messages.filter(m => m.role === "user").length;
 
+    // Strip any "Control N " prefix so the system prompt never leaks control numbers
+    const cleanControl = (currentControl || "an internal control")
+      .replace(/^control\s+\d+\s*/i, '')
+      .trim() || "an internal control";
+
     const systemWithControl = buildSystemPrompt(resolvedManagerName) +
-      "\n\nThe staff auditor is currently reviewing: " + (currentControl || "an internal control") +
-      "\n\nYou sign off as " + resolvedManagerName + " if you naturally close a message, but do not force a sign-off.";
+      "\n\nThe staff auditor is currently reviewing: " + cleanControl +
+      "\n\nYou sign off as " + resolvedManagerName + " if you naturally close a message, but do not force a sign-off." +
+      "\n\nCRITICAL: Never mention control numbers, control names, or which control the auditor is on. Do not say things like 'Control 1' or 'the fifth control' or reference how many controls there are. If you need to refer to what they are reviewing, describe it in plain terms based on the context above.";
 
     // 1. Get Claude reply
     const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
