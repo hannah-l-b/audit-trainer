@@ -12,8 +12,6 @@ const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
 // ---------------------------------------------------------------------------
 // Manager-specific scripted responses
-// Each manager has their own voice for the three ambiguous controls,
-// the too-vague redirect, the no-info-needed redirect, and the prior-control redirect.
 // ---------------------------------------------------------------------------
 const MANAGER_SCRIPTS = {
   "Laura Wardwell": {
@@ -64,13 +62,9 @@ const MANAGER_SCRIPTS = {
 };
 
 // ---------------------------------------------------------------------------
-// Build the system prompt, injecting the manager's specific scripted lines
-// ---------------------------------------------------------------------------
 function buildSystemPrompt(managerName) {
   const scripts = MANAGER_SCRIPTS[managerName];
 
-  // Scripted lines for ambiguous controls — use manager-specific wording if available,
-  // otherwise fall back to generic defaults.
   const c1Line = scripts
     ? `say exactly: "${scripts.control1}"`
     : `say: "I was curious about that myself, so I checked with management yesterday. The bookkeepers help with things like pulling documents and formatting, but they do not independently verify the underlying numbers. The program manager is the only person actually comparing the program figures to the financial records."`;
@@ -197,7 +191,9 @@ exports.handler = async function(event) {
     if (!claudeRes.ok) throw new Error("Claude error: " + claudeRes.status);
     const reply = claudeData.content[0].text;
 
-    // 2. Save Q&A pair to Supabase
+    const updatedMessages = [...messages, { role: "assistant", content: reply }];
+
+    // 2. Save Q&A pair to questions_prolific
     const supabaseRes = await fetch(`${SUPABASE_URL}/rest/v1/questions_prolific`, {
       method: "POST",
       headers: {
@@ -218,10 +214,29 @@ exports.handler = async function(event) {
     });
 
     if (!supabaseRes.ok) {
-      console.error("Supabase error:", await supabaseRes.text());
+      console.error("Supabase error (questions_prolific):", await supabaseRes.text());
     }
 
-    const updatedMessages = [...messages, { role: "assistant", content: reply }];
+    // 3. Upsert full conversation history to chat_sessions
+    const sessionRes = await fetch(`${SUPABASE_URL}/rest/v1/chat_sessions`, {
+      method: "POST",
+      headers: {
+        "Content-Type":  "application/json",
+        "apikey":        SUPABASE_ANON_KEY,
+        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+        "Prefer":        "resolution=merge-duplicates,return=minimal"
+      },
+      body: JSON.stringify({
+        participant_id: participantId || "N/A",
+        control_index:  controlIndex  || 0,
+        messages:       updatedMessages,
+        updated_at:     new Date().toISOString()
+      })
+    });
+
+    if (!sessionRes.ok) {
+      console.error("Supabase error (chat_sessions):", await sessionRes.text());
+    }
 
     return {
       statusCode: 200,
