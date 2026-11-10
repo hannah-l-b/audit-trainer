@@ -514,26 +514,28 @@ document.getElementById('date-label').textContent = getDate();
 // If found, hides the initial manager message and replays the conversation.
 
 function renderRestoredMessage(role, text) {
-  const msgs = document.getElementById('messages');
+  const msgs   = document.getElementById('messages');
   const typing = document.getElementById('typing-row');
-  const div = document.createElement('div');
-  if (role === 'assistant') {
-    div.className = 'msg-row';
-    div.innerHTML = `
-      <div class="msg-avatar">${MANAGER_INITIALS}</div>
-      <div class="msg-body">
-        <div class="msg-meta"><span class="msg-name">${MANAGER_NAME}</span><span class="msg-time">${getTime()}</span></div>
-        <div class="msg-bubble manager-bubble">${text}</div>
-      </div>`;
-  } else {
-    div.className = 'msg-row user-row';
-    div.innerHTML = `
-      <div class="msg-body">
-        <div class="msg-meta user-meta"><span class="msg-time">${getTime()}</span></div>
-        <div class="msg-bubble user-bubble">${text}</div>
-      </div>`;
-  }
-  msgs.insertBefore(div, typing);
+
+  const isLaura     = role === 'assistant';
+  const avatarClass = isLaura ? '' : 'you-avatar';
+  const nameClass   = isLaura ? '' : 'you-name';
+  const initials    = isLaura ? MANAGER_INITIALS : 'YN';
+  const sender      = isLaura ? MANAGER_NAME : 'You';
+  const escaped     = text.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+
+  const group = document.createElement('div');
+  group.className = 'msg-group';
+  group.innerHTML = `
+    <div class="msg-group-avatar ${avatarClass}">${initials}</div>
+    <div class="msg-group-content">
+      <div class="msg-group-header">
+        <span class="msg-group-name ${nameClass}">${sender}</span>
+        <span class="msg-group-time">${getTime()}</span>
+      </div>
+      <div class="msg-bubble">${escaped}</div>
+    </div>`;
+  msgs.insertBefore(group, typing);
 }
 
 function restoreHistoryFromSupabase() {
@@ -545,7 +547,10 @@ function restoreHistoryFromSupabase() {
       // Hide initial manager message — history replaces it
       const initMsg = document.getElementById('init-message-row');
       if (initMsg) initMsg.style.display = 'none';
-      conversationHistory = d.messages;
+      // Render all prior messages visually so participant sees continuity,
+      // but do NOT load them into conversationHistory — the API should start
+      // fresh for each control so it doesn't mistake new questions for prior-control repeats.
+      conversationHistory = [];
       d.messages.forEach(m => renderRestoredMessage(m.role, m.content));
       const msgs = document.getElementById('messages');
       msgs.scrollTop = msgs.scrollHeight;
@@ -630,6 +635,8 @@ async function sendMessage() {
           participantId: PARTICIPANT_ID,
           condition:     CONDITION,
           score:         PARTICIPANT_SCORE,
+          partnerScore:  MANAGER_SCORE_VAL,
+          combinedScore: COMBINED_SCORE,
         } : {
           messages:       conversationHistory,
           currentControl: CURRENT_CONTROL,
