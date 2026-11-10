@@ -25,7 +25,7 @@ exports.handler = async (event) => {
   }
 
   try {
-    const url = `${SUPABASE_URL}/rest/v1/results_prolific?participant_id=eq.${encodeURIComponent(pid)}&select=final_score,condition&order=created_at.desc&limit=1`;
+    const url = `${SUPABASE_URL}/rest/v1/results_prolific?participant_id=eq.${encodeURIComponent(pid)}&select=final_score,condition&limit=1`;
     const res = await fetch(url, {
       headers: {
         'apikey': SUPABASE_KEY,
@@ -34,6 +34,8 @@ exports.handler = async (event) => {
     });
 
     const rows = await res.json();
+    console.log('Supabase status:', res.status);
+    console.log('Rows returned:', JSON.stringify(rows));
     if (!rows.length) {
       return { statusCode: 200, headers: { ...CORS, 'Content-Type': 'application/json' }, body: JSON.stringify({ found: false }) };
     }
