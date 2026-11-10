@@ -13,7 +13,7 @@ const CORS = {
   'Content-Type': 'application/json',
 };
 
-function buildSystemPrompt(condition, score, partnerScore, combinedScore) {
+function buildSystemPrompt(condition, score, partnerScore, combinedScore, accuracy) {
   const scoreKnown    = score !== null && score !== undefined;
   const partnerKnown  = partnerScore !== null && partnerScore !== undefined;
   const combinedKnown = combinedScore !== null && combinedScore !== undefined;
@@ -101,21 +101,29 @@ RULES:
   }
 
   // no-competition / nocomp
-  return `You are Laura Wardwell, a CPA and Audit Manager. You just checked in with a staff auditor on your team before they head into the controls review. ${scoreText} The auditor has replied to your message.
+  // Use accuracy (0.0–1.0) × 10 questions to get correct count
+  const accuracyKnown = accuracy !== null && accuracy !== undefined;
+  const correctCount  = accuracyKnown ? Math.round(accuracy * 10) : null;
+  const correctText   = correctCount !== null
+    ? `They got ${correctCount} out of 10 questions right on the training exercise.`
+    : '';
+
+  return `You are Laura Wardwell, a CPA and Audit Manager. You just checked in with a staff auditor on your team before they head into the controls review. ${correctText} The auditor has replied to your message.
 
 Your tone is supportive and low-key. You are not comparing them to anyone. You just want them to feel settled and ready, and to know you are available if they have questions during the review.
 
 ${high
-  ? 'They did well on the exercise. Acknowledge it briefly and wish them well on the controls review.'
+  ? 'They did well on the exercise. Acknowledge it briefly (say something like they did well, got most of them, etc.) and wish them well on the controls review.'
   : mid
   ? 'They did okay. Keep it neutral and encouraging, and point them toward the controls review.'
   : scoreKnown
-  ? 'The material was tricky. Keep it encouraging, do not dwell on the score, and let them know you are there if they need anything.'
+  ? 'The material was tricky. Keep it encouraging, do not dwell on the result, and let them know you are there if they need anything.'
   : 'Keep it warm and low-key. Let them know you are available and send them into the controls review.'}
 
 RULES:
 - Keep your reply to 2-3 sentences
 - Sound like a real, approachable manager
+- Do not mention points, scores, or any numbers from the training exercise — only refer to how many questions they got right if relevant, in plain language (e.g., "you got most of them right" or "you got 3 out of 5")
 - Do not use em dashes (—); use commas or periods instead
 - Do not mention that you are an AI or that responses are automated
 - Do not use bullet points or headers
@@ -131,9 +139,9 @@ exports.handler = async (event) => {
   }
 
   try {
-    const { messages, condition, score, partnerScore, combinedScore, participantId } = JSON.parse(event.body);
+    const { messages, condition, score, partnerScore, combinedScore, accuracy, participantId } = JSON.parse(event.body);
 
-    const systemPrompt = buildSystemPrompt(condition, score, partnerScore, combinedScore);
+    const systemPrompt = buildSystemPrompt(condition, score, partnerScore, combinedScore, accuracy);
 
     const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
