@@ -273,13 +273,23 @@
   <!-- Messages -->
   <div class="teams-messages" id="messages">
 
-    <div class="date-sep">
+    <!-- Restored history from prior controls goes here -->
+    <div id="history-section" style="display:none;">
+      <div class="date-sep" style="margin-bottom:4px;">
+        <div class="date-sep-line"></div>
+        <div class="date-sep-text" style="color:#9e9e9e;font-size:11px;">Earlier</div>
+        <div class="date-sep-line"></div>
+      </div>
+      <div id="history-messages"></div>
+    </div>
+
+    <div class="date-sep" id="date-sep-main">
       <div class="date-sep-line"></div>
       <div class="date-sep-text" id="date-label"></div>
       <div class="date-sep-line"></div>
     </div>
 
-    <!-- Initial message -->
+    <!-- Initial message (always shown) -->
     <div class="msg-group" id="init-message-row">
       <div class="msg-group-avatar" id="init-avatar">LW</div>
       <div class="msg-group-content">
@@ -514,8 +524,8 @@ document.getElementById('date-label').textContent = getDate();
 // If found, hides the initial manager message and replays the conversation.
 
 function renderRestoredMessage(role, text) {
-  const msgs   = document.getElementById('messages');
-  const typing = document.getElementById('typing-row');
+  const container = document.getElementById('history-messages');
+  if (!container) return;
 
   const isLaura     = role === 'assistant';
   const avatarClass = isLaura ? '' : 'you-avatar';
@@ -535,27 +545,34 @@ function renderRestoredMessage(role, text) {
       </div>
       <div class="msg-bubble">${escaped}</div>
     </div>`;
-  msgs.insertBefore(group, typing);
+  container.appendChild(group);
 }
 
-function restoreHistoryFromSupabase() {
+function restoreHistoryFromSupabase(attempt) {
   if (PARTICIPANT_ID === 'N/A') return;
+  attempt = attempt || 1;
   fetch(GET_HISTORY_URL + '?pid=' + encodeURIComponent(PARTICIPANT_ID) + '&control=' + encodeURIComponent(CONTROL_INDEX))
     .then(r => r.json())
     .then(d => {
-      if (!d.found || !d.messages || !d.messages.length) return;
-      // Hide initial manager message — history replaces it
-      const initMsg = document.getElementById('init-message-row');
-      if (initMsg) initMsg.style.display = 'none';
-      // Render all prior messages visually so participant sees continuity,
-      // but do NOT load them into conversationHistory — the API should start
-      // fresh for each control so it doesn't mistake new questions for prior-control repeats.
+      if (!d.found || !d.messages || !d.messages.length) {
+        // Retry up to 3 times in case the previous control's save is still propagating
+        if (attempt < 3) setTimeout(() => restoreHistoryFromSupabase(attempt + 1), 2500);
+        return;
+      }
+      // Show history section above the current control's greeting
+      const histSection = document.getElementById('history-section');
+      const histMessages = document.getElementById('history-messages');
+      if (histMessages) histMessages.innerHTML = '';
+      if (histSection) histSection.style.display = 'block';
+      // Do NOT load into conversationHistory — API starts fresh each control
       conversationHistory = [];
       d.messages.forEach(m => renderRestoredMessage(m.role, m.content));
       const msgs = document.getElementById('messages');
       msgs.scrollTop = msgs.scrollHeight;
     })
-    .catch(() => { /* silently fall back to showing init message */ });
+    .catch(() => {
+      if (attempt < 3) setTimeout(() => restoreHistoryFromSupabase(attempt + 1), 2500);
+    });
 }
 
 restoreHistoryFromSupabase();
