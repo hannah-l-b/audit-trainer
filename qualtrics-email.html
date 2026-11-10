@@ -559,10 +559,18 @@ function restoreHistoryFromSupabase(attempt) {
         if (attempt < 3) setTimeout(() => restoreHistoryFromSupabase(attempt + 1), 2500);
         return;
       }
-      // Show history section above the current control's greeting
+      // Move the init greeting into the Earlier section, then hide it from the main area
+      const initRow = document.getElementById('init-message-row');
       const histSection = document.getElementById('history-section');
       const histMessages = document.getElementById('history-messages');
       if (histMessages) histMessages.innerHTML = '';
+      // Prepend the Laura greeting as the first item in Earlier
+      if (initRow && histMessages) {
+        const greetingClone = initRow.cloneNode(true);
+        greetingClone.removeAttribute('id');
+        histMessages.appendChild(greetingClone);
+      }
+      if (initRow) initRow.style.display = 'none';
       if (histSection) histSection.style.display = 'block';
       // Do NOT load into conversationHistory — API starts fresh each control
       conversationHistory = [];
