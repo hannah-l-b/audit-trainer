@@ -371,15 +371,30 @@ function getScoreReaction(score) {
 }
 
 function getInitialMessage(score, condition) {
-  const scorePart = score !== null ? ` ${score} points. ${getScoreReaction(score)}` : "";
-  if (condition === "competitive") {
-    return `Hey, saw your score from the exercise was recorded.${scorePart} I'm tied up with something right now but feel free to message me if anything comes up.`;
+  const reaction = score !== null ? getScoreReaction(score) : "";
+  if (condition === "competitive" || condition === "comp") {
+    if (score !== null) {
+      return `Hey, saw your score from the exercise was recorded — you got ${score} points. ${reaction} I'm tied up with something right now but feel free to message me if anything comes up.`;
+    }
+    return `Hey, saw your score from the exercise was recorded. I'm tied up with something right now but feel free to message me if anything comes up.`;
   }
   if (condition === "team") {
-    return `Hey, saw our scores from the exercise were recorded. You came in at${scorePart} I'm in the middle of something right now but message me if you need anything. We're in this together.`;
+    if (score !== null) {
+      return `Hey, saw our scores from the exercise were recorded. You came in at ${score} points — ${reaction.toLowerCase()} I'm in the middle of something right now but message me if you need anything. We're in this together.`;
+    }
+    return `Hey, saw our scores from the exercise were recorded. I'm in the middle of something right now but message me if you need anything. We're in this together.`;
   }
-  // no-competition
-  return `Hey, just wanted to let you know your score from the exercise was logged.${scorePart} I'm working through some things on my end but feel free to reach out if you have any questions.`;
+  // no-competition — don't show score, but vary tone based on performance
+  if (score !== null && score >= 800) {
+    return `Hey, just wanted to let you know your results from the exercise were logged. Looks like you did well on it. I'm working through some things on my end but feel free to reach out if you have any questions.`;
+  }
+  if (score !== null && score >= 400) {
+    return `Hey, just wanted to let you know your results from the exercise were logged. Decent job overall. I'm working through some things on my end but feel free to reach out if you have any questions.`;
+  }
+  if (score !== null) {
+    return `Hey, just wanted to let you know your results from the exercise were logged. Looks like some of the material was tricky — that's what the training is for. Feel free to reach out if you have any questions.`;
+  }
+  return `Hey, just wanted to let you know your results from the exercise were logged. Feel free to reach out if you have any questions.`;
 }
 // ─────────────────────────────────────────────────────────────
 
