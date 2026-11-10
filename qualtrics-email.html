@@ -77,6 +77,7 @@
   /* ── MESSAGES ── */
   .teams-messages {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
     padding: 16px 0;
     background: #fff;
@@ -556,7 +557,7 @@ function restoreHistoryFromSupabase(attempt) {
     .then(d => {
       if (!d.found || !d.messages || !d.messages.length) {
         // Retry up to 3 times in case the previous control's save is still propagating
-        if (attempt < 3) setTimeout(() => restoreHistoryFromSupabase(attempt + 1), 2500);
+        if (attempt < 4) setTimeout(() => restoreHistoryFromSupabase(attempt + 1), 4000);
         return;
       }
       // Move the init greeting into the Earlier section, then hide it from the main area
@@ -579,7 +580,7 @@ function restoreHistoryFromSupabase(attempt) {
       msgs.scrollTop = msgs.scrollHeight;
     })
     .catch(() => {
-      if (attempt < 3) setTimeout(() => restoreHistoryFromSupabase(attempt + 1), 2500);
+      if (attempt < 4) setTimeout(() => restoreHistoryFromSupabase(attempt + 1), 4000);
     });
 }
 
