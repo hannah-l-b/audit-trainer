@@ -27,10 +27,10 @@ exports.handler = async (event) => {
   }
 
   try {
-    // Fetch ALL sessions for this participant where control_index >= 0, ordered by control_index.
-    // We merge them into one continuous conversation so history carries across controls.
-    // Sessions with control_index < 0 (intro chat) are excluded from the control chat view.
-    const url = `${SUPABASE_URL}/rest/v1/chat_sessions?participant_id=eq.${encodeURIComponent(pid)}&control_index=gte.0&select=messages,control_index,created_at&order=created_at.asc`;
+    // Fetch ALL sessions for this participant, ordered by created_at.
+    // This includes the intro chat (control_index = -1) and all control chats.
+    // No control_index filter — avoids PostgREST issues with negative numbers.
+    const url = `${SUPABASE_URL}/rest/v1/chat_sessions?participant_id=eq.${encodeURIComponent(pid)}&select=messages,control_index,created_at&order=created_at.asc`;
     const res = await fetch(url, {
       headers: {
         'apikey':        SUPABASE_KEY,
