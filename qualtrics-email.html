@@ -580,6 +580,14 @@ function restoreHistoryFromSupabase(attempt) {
 
 restoreHistoryFromSupabase();
 
+// ── PASTE TRACKING ──
+// Count pastes in the chat compose box and report to the parent Qualtrics page
+var chatPasteCount = 0;
+document.getElementById('compose').addEventListener('paste', function() {
+  chatPasteCount++;
+  window.parent.postMessage({ type: 'chat_paste', count: chatPasteCount }, '*');
+});
+
 function appendMessage(text, isLaura) {
   const msgs   = document.getElementById('messages');
   const typing = document.getElementById('typing-row');
