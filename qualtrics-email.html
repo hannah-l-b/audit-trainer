@@ -502,10 +502,20 @@ document.getElementById('compose').placeholder = 'Type a message to ' + MANAGER_
 document.getElementById('init-time').textContent = getTime();
 document.getElementById('date-label').textContent = getDate();
 
+// Seed conversationHistory with Laura's initial message so it gets saved to Supabase
+// and appears in the Earlier section of subsequent control chats.
+function seedInitMessage(text) {
+  if (MODE === 'intro' && conversationHistory.length === 0) {
+    conversationHistory = [{ role: 'assistant', content: text }];
+  }
+}
+
 // Fetch score from Supabase, then set initial message
 (function loadScore() {
   if (PARTICIPANT_ID === 'N/A') {
-    document.getElementById('init-msg').textContent = getInitialMessage(null, CONDITION);
+    var msg = getInitialMessage(null, CONDITION);
+    document.getElementById('init-msg').textContent = msg;
+    seedInitMessage(msg);
     return;
   }
   fetch(GET_SCORE_URL + '?pid=' + encodeURIComponent(PARTICIPANT_ID))
@@ -517,10 +527,14 @@ document.getElementById('date-label').textContent = getDate();
         if (d.combined_score != null) COMBINED_SCORE      = parseInt(d.combined_score);
         if (d.accuracy       != null) PARTICIPANT_ACCURACY = parseFloat(d.accuracy);
       }
-      document.getElementById('init-msg').textContent = getInitialMessage(PARTICIPANT_SCORE, CONDITION);
+      var msg = getInitialMessage(PARTICIPANT_SCORE, CONDITION);
+      document.getElementById('init-msg').textContent = msg;
+      seedInitMessage(msg);
     })
     .catch(() => {
-      document.getElementById('init-msg').textContent = getInitialMessage(null, CONDITION);
+      var msg = getInitialMessage(null, CONDITION);
+      document.getElementById('init-msg').textContent = msg;
+      seedInitMessage(msg);
     });
 })();
 
