@@ -224,25 +224,56 @@ exports.handler = async function(event) {
       console.error("Supabase error (questions_prolific):", await supabaseRes.text());
     }
 
-    // 3. Upsert full conversation history to chat_sessions
-    const sessionRes = await fetch(`${SUPABASE_URL}/rest/v1/chat_sessions`, {
-      method: "POST",
-      headers: {
-        "Content-Type":  "application/json",
-        "apikey":        SUPABASE_ANON_KEY,
-        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-        "Prefer":        "resolution=merge-duplicates,return=minimal"
-      },
-      body: JSON.stringify({
-        participant_id: participantId || "N/A",
-        control_index:  controlIndex  || 0,
-        messages:       updatedMessages,
-        updated_at:     new Date().toISOString()
-      })
-    });
+    // 3. Save full conversation history to chat_sessions.
+    // Use PATCH first (update existing row); if no row exists yet, INSERT a new one.
+    // This avoids relying on merge-duplicates, which requires PostgREST to detect
+    // the unique constraint and can silently fail on the second message send.
+    const safeControlIndex = parseInt(controlIndex) || 0;
+    const safeParticipantId = participantId || "N/A";
+    const sessionPayload = {
+      messages:   updatedMessages,
+      updated_at: new Date().toISOString()
+    };
 
-    if (!sessionRes.ok) {
-      console.error("Supabase error (chat_sessions):", await sessionRes.text());
+    const patchRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/chat_sessions`
+        + `?participant_id=eq.${encodeURIComponent(safeParticipantId)}`
+        + `&control_index=eq.${safeControlIndex}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type":  "application/json",
+          "apikey":        SUPABASE_ANON_KEY,
+          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+          "Prefer":        "return=representation"
+        },
+        body: JSON.stringify(sessionPayload)
+      }
+    );
+
+    const patchedRows = await patchRes.json();
+
+    if (!patchRes.ok) {
+      console.error("Supabase PATCH error (chat_sessions):", JSON.stringify(patchedRows));
+    } else if (!patchedRows.length) {
+      // No existing row — insert a new one
+      const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/chat_sessions`, {
+        method: "POST",
+        headers: {
+          "Content-Type":  "application/json",
+          "apikey":        SUPABASE_ANON_KEY,
+          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+          "Prefer":        "return=minimal"
+        },
+        body: JSON.stringify({
+          participant_id: safeParticipantId,
+          control_index:  safeControlIndex,
+          ...sessionPayload
+        })
+      });
+      if (!insertRes.ok) {
+        console.error("Supabase INSERT error (chat_sessions):", await insertRes.text());
+      }
     }
 
     return {
