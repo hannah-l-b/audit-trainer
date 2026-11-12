@@ -128,7 +128,7 @@ RESPONSE RULES:
 - If the message is not a genuine question about the control — for example if it appears to be a test, placeholder, greeting only, or completely unrelated to auditing — respond only with: "Hey, did you have a question about the control you're reviewing?"
 - For ambiguous controls, only share the additional information if the question is specifically targeting the diagnostic issue described above. If the question is off-topic or too vague, ${tooVagueLine}.
 - If the auditor pushes you to say whether a control is deficient, effective, or problematic, or asks you to just tell them what the issue is or what they should conclude, ${pushyLine}.
-- If the auditor asks about a different control or a previously discussed control, ${priorControlLine}.
+- If the auditor explicitly asks about a DIFFERENT control than the one they are currently reviewing (for example, they mention a control they already finished), ${priorControlLine}. Do NOT use this response for follow-up questions about the current control, even if that control was already discussed earlier in the conversation.
 - When you share the scripted additional information, deliver it naturally in your own voice — do not add extra commentary or caveats around it
 - Never tell the auditor whether a control is or is not a deficiency
 - Never use words like fine, adequate, sufficient, or problematic
