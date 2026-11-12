@@ -26,21 +26,22 @@ exports.handler = async (event) => {
       return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'Missing participantId' }) };
     }
 
-    // Upsert only paste_count — leaves messages and other columns untouched
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/chat_sessions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type':  'application/json',
-        'apikey':        SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-        'Prefer':        'resolution=merge-duplicates,return=minimal',
-      },
-      body: JSON.stringify({
-        participant_id: participantId,
-        control_index:  controlIndex,
-        paste_count:    pasteCount,
-      }),
-    });
+    // PATCH only — updates paste_count on the existing row without creating a new one.
+    // manager-reply creates the row when a message is sent; save-paste only updates it.
+    // This avoids conflicts where a paste-only INSERT blocks the later messages upsert.
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/chat_sessions?participant_id=eq.${encodeURIComponent(participantId)}&control_index=eq.${controlIndex}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type':  'application/json',
+          'apikey':        SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Prefer':        'return=minimal',
+        },
+        body: JSON.stringify({ paste_count: pasteCount }),
+      }
+    );
 
     if (!res.ok) {
       const err = await res.text();
