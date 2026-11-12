@@ -112,8 +112,10 @@ RULES:
 
 Your tone is supportive and low-key. You are not comparing them to anyone. You just want them to feel settled and ready, and to know you are available if they have questions during the review.
 
-${high
-  ? 'They did well on the exercise. Acknowledge it briefly (say something like they did well, got most of them, etc.) and wish them well on the controls review.'
+${correctCount === 10
+  ? 'They got every question right. Acknowledge that specifically — say they got them all, not "most" — and send them into the controls review feeling good about it.'
+  : high
+  ? `They did well on the exercise (${correctCount !== null ? correctCount + ' out of 10' : 'high score'}). Acknowledge it briefly and wish them well on the controls review.`
   : mid
   ? 'They did okay. Keep it neutral and encouraging, and point them toward the controls review.'
   : scoreKnown
@@ -191,26 +193,40 @@ exports.handler = async (event) => {
       }
     }
 
-    // Save intro conversation to chat_sessions under control_index -1
-    // (so it's separate from control question chats but loads as prior history)
+    // Save intro conversation to chat_sessions under control_index -1.
+    // Use PATCH + INSERT to avoid merge-duplicates silently failing on second message.
     if (SUPABASE_URL && SUPABASE_KEY && participantId && participantId !== 'N/A') {
-      const sessionRes = await fetch(`${SUPABASE_URL}/rest/v1/chat_sessions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type':  'application/json',
-          'apikey':        SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-          'Prefer':        'resolution=merge-duplicates,return=minimal',
-        },
-        body: JSON.stringify({
-          participant_id: participantId,
-          control_index:  -1,
-          messages:       updatedMessages,
-          updated_at:     new Date().toISOString(),
-        }),
-      });
-      if (!sessionRes.ok) {
-        console.error('Supabase error (chat_sessions intro):', await sessionRes.text());
+      const introPayload = { messages: updatedMessages, updated_at: new Date().toISOString() };
+      const patchRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/chat_sessions?participant_id=eq.${encodeURIComponent(participantId)}&control_index=eq.-1`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type':  'application/json',
+            'apikey':        SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Prefer':        'return=representation',
+          },
+          body: JSON.stringify(introPayload),
+        }
+      );
+      const patchedRows = await patchRes.json();
+      if (!patchRes.ok) {
+        console.error('Supabase PATCH error (chat_sessions intro):', JSON.stringify(patchedRows));
+      } else if (!patchedRows.length) {
+        const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/chat_sessions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type':  'application/json',
+            'apikey':        SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Prefer':        'return=minimal',
+          },
+          body: JSON.stringify({ participant_id: participantId, control_index: -1, ...introPayload }),
+        });
+        if (!insertRes.ok) {
+          console.error('Supabase INSERT error (chat_sessions intro):', await insertRes.text());
+        }
       }
     }
 
