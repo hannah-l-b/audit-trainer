@@ -361,6 +361,7 @@ const MANAGER_REPLY_URL = "https://audit-trainer.netlify.app/.netlify/functions/
 const INTRO_REPLY_URL   = "https://audit-trainer.netlify.app/.netlify/functions/intro-reply";
 const GET_SCORE_URL     = "https://audit-trainer.netlify.app/.netlify/functions/get-score";
 const GET_HISTORY_URL   = "https://audit-trainer.netlify.app/.netlify/functions/get-history";
+const SAVE_PASTE_URL    = "https://audit-trainer.netlify.app/.netlify/functions/save-paste";
 
 const _p              = new URLSearchParams(window.location.search);
 const MODE            = _p.get("mode")      || "control";   // "intro" or "control"
@@ -587,10 +588,22 @@ if (MODE !== 'intro') {
 restoreHistoryFromSupabase();
 
 // ── PASTE TRACKING ──
-// Count pastes in the chat compose box and report to the parent Qualtrics page
+// Count pastes and save directly to Supabase via save-paste function.
 var chatPasteCount = 0;
 document.getElementById('compose').addEventListener('paste', function() {
   chatPasteCount++;
+  if (PARTICIPANT_ID !== 'N/A') {
+    fetch(SAVE_PASTE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        participantId: PARTICIPANT_ID,
+        controlIndex:  parseInt(CONTROL_INDEX),
+        pasteCount:    chatPasteCount,
+      }),
+    }).catch(function() {}); // fire-and-forget, ignore errors
+  }
+  // Also postMessage to parent in case Qualtrics JS is listening
   window.parent.postMessage({ type: 'chat_paste', count: chatPasteCount }, '*');
 });
 
