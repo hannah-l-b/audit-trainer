@@ -290,8 +290,8 @@
       <div class="date-sep-line"></div>
     </div>
 
-    <!-- Initial greeting — always hidden; intro chat established the conversation -->
-    <div class="msg-group" id="init-message-row" style="display:none;">
+    <!-- Initial greeting — shown in intro mode, hidden in control mode (intro already established the conversation) -->
+    <div class="msg-group" id="init-message-row">
       <div class="msg-group-avatar" id="init-avatar">LW</div>
       <div class="msg-group-content">
         <div class="msg-group-header">
@@ -576,6 +576,12 @@ function restoreHistoryFromSupabase(attempt) {
     .catch(() => {
       if (attempt < 4) setTimeout(() => restoreHistoryFromSupabase(attempt + 1), 4000);
     });
+}
+
+// In control mode, hide the init greeting — the intro chat already established the conversation
+if (MODE !== 'intro') {
+  var initRow = document.getElementById('init-message-row');
+  if (initRow) initRow.style.display = 'none';
 }
 
 restoreHistoryFromSupabase();
