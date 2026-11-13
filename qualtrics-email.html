@@ -449,6 +449,9 @@ function getInitialMessage(score, condition) {
 
   // Intro mode — score-based, condition-specific, ends with a question
   if (condition === "competitive" || condition === "comp") {
+    if (score !== null && score >= 2200) {
+      return `Hey, saw your score from the training exercise — you got ${score} points, which is one of the stronger scores we've seen from the exercise. Is there anything you want to go over before you start the controls review?`;
+    }
     if (score !== null && score >= 800) {
       return `Hey, saw your score from the training exercise — you got ${score} points. A few others on the team have finished too and their scores are in, so you're not at the top of the leaderboard just yet. Is there anything you want to go over before you start the controls review?`;
     }
