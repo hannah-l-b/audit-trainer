@@ -20,7 +20,8 @@ function buildSystemPrompt(condition, score, partnerScore, combinedScore, accura
 
   const scoreText = scoreKnown ? `The participant scored ${score} points on the training exercise.` : '';
 
-  const high = scoreKnown && score >= 800;
+  const veryHigh = scoreKnown && score >= 2200;
+  const high = scoreKnown && score >= 800 && score < 2200;
   const mid  = scoreKnown && score >= 400 && score < 800;
   // low = scoreKnown && score < 400 (or unknown)
 
@@ -29,7 +30,9 @@ function buildSystemPrompt(condition, score, partnerScore, combinedScore, accura
 
 Your tone is concerned and direct, not harsh. Your goal is to make them feel the real possibility of finishing behind their peers, not to congratulate them or give them a pep talk. You are not being cruel, but you are not being encouraging either. You want them to leave this conversation with a clear sense that falling behind the rest of the group is a risk they should take seriously heading into the controls review.
 
-${high
+${veryHigh
+  ? 'Their score was very strong — one of the best from the exercise. Acknowledge it genuinely and briefly. Do not say they are behind anyone, do not mention the leaderboard position, and do not suggest there is ground to make up. Keep it matter-of-fact and send them into the controls review.'
+  : high
   ? 'Their score was decent but others scored higher. Acknowledge what they got without making it sound like a win, note clearly that they are not at the top, and send them into the controls review with a sense that there is real ground to make up.'
   : mid
   ? 'Their score puts them in the middle of the pack. Be direct that others are ahead and that the controls review is where they either close the gap or fall further behind — keep it matter-of-fact, not punishing.'
