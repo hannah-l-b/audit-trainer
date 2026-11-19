@@ -23,6 +23,9 @@
 //      combined_score → int8
 //      tab_switches  → int8
 //      time_away_ms  → int8
+//      leaderboard_scores → jsonb   ← NEW: array of all scores on the leaderboard
+//      group_average      → int8    ← NEW: computed average of leaderboard_scores
+//      above_average      → bool    ← NEW: true if participant score >= group average
 // 5. Go to Project Settings → API
 // 6. Copy "Project URL" and paste below as SUPABASE_URL
 // 7. Copy "anon public" key and paste below as SUPABASE_ANON_KEY
@@ -48,22 +51,43 @@ exports.handler = async function(event) {
   try {
     const data = JSON.parse(event.body);
 
+    // --- Compute above_average from leaderboard scores ---
+    // leaderboardScores: array of all scores on the board, including the participant.
+    // For comp: [participantScore, peer1, peer2, peer3, peer4, peer5]
+    // For team: [combinedScore, aiTeam1, aiTeam2, aiTeam3, aiTeam4, aiTeam5]
+    let groupAverage = null;
+    let aboveAverage = null;
+    if (Array.isArray(data.leaderboardScores) && data.leaderboardScores.length > 0) {
+      const scores = data.leaderboardScores.map(Number).filter(n => !isNaN(n));
+      if (scores.length > 0) {
+        groupAverage = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+        // For comp use finalScore; for team use combinedScore
+        const participantScore = data.combinedScore ?? data.finalScore ?? null;
+        if (participantScore !== null) {
+          aboveAverage = participantScore >= groupAverage;
+        }
+      }
+    }
+
     const row = {
-      condition:        data.condition,
-      participant_id:   data.participantId || "N/A",
-      final_score:      data.finalScore,
-      correct_answers:  data.correctAnswers,
-      total_questions:  data.totalQuestions,
-      accuracy:         data.accuracy,
-      max_streak:       data.maxStreak,
-      total_time:       data.totalTime,
-      timed_out_count:  data.timedOut,
-      question_log:     data.questions,       // stored as JSON
-      question_order:   data.questionOrder,   // original indices in order shown
-      partner_score:    data.partnerScore || data.managerScore || null,
-      combined_score:   data.combinedScore || null,
-      tab_switches:     data.tabSwitches ?? 0,
-      time_away_ms:     data.timeAwayMs ?? 0
+      condition:          data.condition,
+      participant_id:     data.participantId || "N/A",
+      final_score:        data.finalScore,
+      correct_answers:    data.correctAnswers,
+      total_questions:    data.totalQuestions,
+      accuracy:           data.accuracy,
+      max_streak:         data.maxStreak,
+      total_time:         data.totalTime,
+      timed_out_count:    data.timedOut,
+      question_log:       data.questions,       // stored as JSON
+      question_order:     data.questionOrder,   // original indices in order shown
+      partner_score:      data.partnerScore || data.managerScore || null,
+      combined_score:     data.combinedScore || null,
+      tab_switches:       data.tabSwitches ?? 0,
+      time_away_ms:       data.timeAwayMs ?? 0,
+      leaderboard_scores: data.leaderboardScores || null,
+      group_average:      groupAverage,
+      above_average:      aboveAverage,
     };
 
     const response = await fetch(`${SUPABASE_URL}/rest/v1/results_prolific`, {
@@ -82,7 +106,12 @@ exports.handler = async function(event) {
       throw new Error(`Supabase error ${response.status}: ${err}`);
     }
 
-    return { statusCode: 200, headers, body: JSON.stringify({ result: "success" }) };
+    // Return aboveAverage so the game can pass it straight to intro-reply
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({ result: "success", aboveAverage, groupAverage })
+    };
 
   } catch (err) {
     console.error("save-result error:", err.message);
