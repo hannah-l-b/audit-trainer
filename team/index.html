@@ -1052,11 +1052,16 @@ function endGame(){
   });
   html+=`<div style="padding:12px 20px;font-size:0.8rem;color:var(--muted);border-top:1px solid var(--border)">Your team rank: <strong style="color:var(--accent)">#${rank} of ${all.length}</strong> &nbsp;|&nbsp; You: <strong style="color:var(--accent)">${score}</strong> &nbsp;+&nbsp; Manager: <strong style="color:var(--accent)">${finalMgrScore}</strong></div>`;
   flb.innerHTML=html;
+  // Compute leaderboard average and above/below status before saving
+  const leaderboardScores = all.map(p=>p.score);
+  const avgScore = Math.round(leaderboardScores.reduce((a,b)=>a+b,0)/leaderboardScores.length);
+  const aboveAverage = combined >= avgScore;
+
   // Save to Netlify
   const finalMgrScoreForPayload=getManagerScore(9);
-  const payload={condition:CONDITION,participantId:new URLSearchParams(window.location.search).get('pid')||'N/A',managerName:MANAGER_NAME,participantScore:score,managerScore:finalMgrScoreForPayload,combinedScore:score+finalMgrScoreForPayload,finalScore:score,correctAnswers:correctCount,totalQuestions:questions.length,accuracy:Math.round((correctCount/questions.length)*100),maxStreak,totalTime:Math.round((Date.now()-gameStart)/1000),timedOut:timedOutCount,questionOrder:questionOrder,questions:qLog,tabSwitches,timeAwayMs};
-  // Store score + condition for Teams chat to read (same Netlify domain = shared localStorage)
-  try { localStorage.setItem('participantScore', score); localStorage.setItem('participantCondition', CONDITION); } catch(e){}
+  const payload={condition:CONDITION,participantId:new URLSearchParams(window.location.search).get('pid')||'N/A',managerName:MANAGER_NAME,participantScore:score,managerScore:finalMgrScoreForPayload,combinedScore:score+finalMgrScoreForPayload,finalScore:score,correctAnswers:correctCount,totalQuestions:questions.length,accuracy:Math.round((correctCount/questions.length)*100),maxStreak,totalTime:Math.round((Date.now()-gameStart)/1000),timedOut:timedOutCount,questionOrder:questionOrder,questions:qLog,tabSwitches,timeAwayMs,leaderboardScores};
+  // Store score + condition + above_average for intro chat to read (same Netlify domain = shared localStorage)
+  try { localStorage.setItem('participantScore', score); localStorage.setItem('participantCondition', CONDITION); localStorage.setItem('aboveAverage', aboveAverage); } catch(e){}
 
   fetch('/.netlify/functions/save-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(r=>r.json())
@@ -1065,16 +1070,17 @@ function endGame(){
       if(d.result==='success'){
         s.textContent='✓ Results saved.';
         s.className='save-status ok';
-        // Signal Qualtrics tab that game is complete
-        try{ if(window.opener&&!window.opener.closed){ window.opener.postMessage('gameComplete','*'); } }catch(e){}
+        // Store server-confirmed aboveAverage in localStorage (overwrite client estimate with server value)
+        try { localStorage.setItem('aboveAverage', d.aboveAverage); } catch(e){}
+        // Signal Qualtrics tab that game is complete, include aboveAverage so survey can pass to intro chat
+        try{ if(window.opener&&!window.opener.closed){ window.opener.postMessage(JSON.stringify({event:'gameComplete',aboveAverage:d.aboveAverage}),'*'); } }catch(e){}
       } else { s.textContent='Results could not be saved automatically.'; }
     })
     .catch(()=>{document.getElementById('save-status').textContent='Results could not be saved automatically.';});
 
-  // Compute average from simulated team standings and show below/above-average message
-  const avgScore = Math.round(all.reduce((sum,p)=>sum+p.score,0)/all.length);
+  // Show below/above-average message on end screen
   const avgEl = document.getElementById('average-status');
-  if(combined < avgScore){
+  if(!aboveAverage){
     avgEl.style.cssText='display:block;border-radius:10px;padding:12px 20px;margin-bottom:12px;font-size:0.875rem;font-weight:600;text-align:center;background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.35);color:#991B1B;';
     avgEl.innerHTML=`⚠️ Your team's combined score (${combined} pts) is below the group average (${avgScore} pts). Your results have been noted in the study's performance records.`;
   } else {
