@@ -25,7 +25,7 @@ exports.handler = async (event) => {
   }
 
   try {
-    const url = `${SUPABASE_URL}/rest/v1/results_prolific?participant_id=eq.${encodeURIComponent(pid)}&select=final_score,partner_score,combined_score,condition,accuracy&limit=1`;
+    const url = `${SUPABASE_URL}/rest/v1/results_prolific?participant_id=eq.${encodeURIComponent(pid)}&select=final_score,partner_score,combined_score,condition,accuracy,above_average&limit=1`;
     const res = await fetch(url, {
       headers: {
         'apikey': SUPABASE_KEY,
@@ -45,11 +45,12 @@ exports.handler = async (event) => {
       headers: { ...CORS, 'Content-Type': 'application/json' },
       body: JSON.stringify({
           found: true,
-          final_score: rows[0].final_score,
-          partner_score: rows[0].partner_score,
+          final_score:    rows[0].final_score,
+          partner_score:  rows[0].partner_score,
           combined_score: rows[0].combined_score,
-          condition: rows[0].condition,
-          accuracy: rows[0].accuracy
+          condition:      rows[0].condition,
+          accuracy:       rows[0].accuracy,
+          above_average:  rows[0].above_average,
         })
     };
   } catch (err) {
