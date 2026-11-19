@@ -375,10 +375,11 @@ const MANAGER_NAME    = _p.get("manager")   || "Laura Wardwell";
 const PROXY_URL = MODE === "intro" ? INTRO_REPLY_URL : MANAGER_REPLY_URL;
 
 // Scores fetched from Supabase on load (localStorage blocked in cross-origin iframes)
-let PARTICIPANT_SCORE = null;
-let MANAGER_SCORE_VAL = null;
-let COMBINED_SCORE    = null;
+let PARTICIPANT_SCORE    = null;
+let MANAGER_SCORE_VAL    = null;
+let COMBINED_SCORE       = null;
 let PARTICIPANT_ACCURACY = null;
+let ABOVE_AVERAGE        = null;  // true/false from results_prolific.above_average
 
 function getInitials(name) {
   return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
@@ -529,6 +530,7 @@ function seedInitMessage(text) {
         if (d.partner_score  != null) MANAGER_SCORE_VAL   = parseInt(d.partner_score);
         if (d.combined_score != null) COMBINED_SCORE      = parseInt(d.combined_score);
         if (d.accuracy       != null) PARTICIPANT_ACCURACY = parseFloat(d.accuracy);
+        if (d.above_average  != null) ABOVE_AVERAGE        = d.above_average; // boolean
       }
       var msg = getInitialMessage(PARTICIPANT_SCORE, CONDITION);
       document.getElementById('init-msg').textContent = msg;
@@ -719,6 +721,7 @@ async function sendMessage() {
           partnerScore:  MANAGER_SCORE_VAL,
           combinedScore: COMBINED_SCORE,
           accuracy:      PARTICIPANT_ACCURACY,
+          aboveAverage:  ABOVE_AVERAGE,
         } : {
           messages:       conversationHistory,
           currentControl: CURRENT_CONTROL,
