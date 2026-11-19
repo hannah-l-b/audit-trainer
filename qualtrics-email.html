@@ -387,42 +387,56 @@ function getInitials(name) {
 const MANAGER_INITIALS = getInitials(MANAGER_NAME);
 
 function getTeamMessage(participantScore, managerScore, combinedScore) {
-  // Determine who scored higher
   const pScore = participantScore !== null ? participantScore : null;
   const mScore = managerScore    !== null ? managerScore    : null;
   const cScore = combinedScore   !== null ? combinedScore   : (pScore !== null && mScore !== null ? pScore + mScore : null);
 
-  // Combined score tier
-  const combinedHigh   = cScore !== null && cScore >= 1600;
-  const combinedMid    = cScore !== null && cScore >= 800 && cScore < 1600;
-  const combinedLow    = cScore !== null && cScore < 800;
-
-  // Who contributed more
   const participantLeading = pScore !== null && mScore !== null && pScore > mScore;
   const managerLeading     = pScore !== null && mScore !== null && mScore > pScore;
-  const tied               = pScore !== null && mScore !== null && pScore === mScore;
+
+  // Use ABOVE_AVERAGE (boolean) when available; fall back to combined score tiers
+  const aboveAvg = ABOVE_AVERAGE === true;
+  const belowAvg = ABOVE_AVERAGE === false;
+  const avgUnknown = ABOVE_AVERAGE === null;
 
   if (cScore === null) {
     return `Hey, saw that our scores from the exercise were logged. Other pairs in the exercise have their scores in too, so let's make sure we're in good shape heading into the controls review — anything you want to go over before you get started?`;
   }
 
-  // Build message based on combined performance + relative contribution
+  if (aboveAvg) {
+    if (participantLeading) {
+      return `Hey, saw our scores from the exercise — combined we pulled in ${cScore} points, and you carried a big part of that. We're above the group average, so we're in a good spot heading into the debrief. Anything you want to go over before the controls review?`;
+    }
+    if (managerLeading) {
+      return `Hey, saw our scores from the exercise — combined we hit ${cScore} points. We're above the group average, so we're in a good spot heading into the debrief. Anything you want to go over before the controls review?`;
+    }
+    return `Hey, saw our scores from the exercise — combined we hit ${cScore} points. We're above the group average, so we're holding our own. Anything you want to go over before the controls review?`;
+  }
+
+  if (belowAvg) {
+    if (participantLeading) {
+      return `Hey, saw our scores from the exercise — ${cScore} points combined. You actually did better than me on it. We're below the group average right now, but the controls review is where we can close that gap — anything you want to go over before you get started?`;
+    }
+    if (managerLeading) {
+      return `Hey, saw our scores from the exercise — ${cScore} points combined. Some of that material was tough for both of us. We're below the group average right now, so let's use the controls review to make up some ground — anything you want to go over?`;
+    }
+    return `Hey, saw our scores from the exercise — ${cScore} points combined. We're below the group average right now, but the controls review is a chance for us to catch up — anything you want to go over before you get started?`;
+  }
+
+  // ABOVE_AVERAGE unknown — fall back to score tiers
+  const combinedHigh = cScore >= 1600;
+  const combinedMid  = cScore >= 800 && cScore < 1600;
+
   if (combinedHigh) {
     if (participantLeading) {
       return `Hey, saw our scores from the exercise — combined we pulled in ${cScore} points, and you carried a big part of that. Really solid work on your end. Other pairs are in the mix too, so let's keep that going into the controls review — anything you want to go over before you get started?`;
     }
-    if (managerLeading) {
-      return `Hey, saw our scores from the exercise — combined we hit ${cScore} points. Strong teamwork. Other pairs have their scores in too, so we're in a good spot heading into the controls review — anything you want to go over before you get started?`;
-    }
-    return `Hey, saw our scores from the exercise — combined we hit ${cScore} points. Really pulled our weight on that one. Other pairs have their scores in too, so we're holding our own — anything you want to go over before the controls review?`;
+    return `Hey, saw our scores from the exercise — combined we hit ${cScore} points. Strong teamwork. Other pairs have their scores in too, so we're in a good spot heading into the controls review — anything you want to go over before you get started?`;
   }
 
   if (combinedMid) {
     if (participantLeading) {
       return `Hey, saw our scores from the exercise — ${cScore} points combined. You actually outscored me on that, so good job holding it up. Other pairs have their scores in and there's room to move up — anything you want to go over before the controls review?`;
-    }
-    if (managerLeading) {
-      return `Hey, saw our scores from the exercise — ${cScore} points combined. Decent teamwork overall. Other pairs have their scores in too, so there's some ground we can make up in the controls review — anything you want to go over before you get started?`;
     }
     return `Hey, saw our scores from the exercise — ${cScore} points combined. Decent effort. Other pairs have their scores in and we're in the middle of the pack, so the controls review is a chance to move up — anything you want to go over?`;
   }
@@ -430,9 +444,6 @@ function getTeamMessage(participantScore, managerScore, combinedScore) {
   // combinedLow
   if (participantLeading) {
     return `Hey, saw our scores from the exercise — ${cScore} points combined. You actually did better than me on it, so not all bad. Other pairs are ahead of us right now, but the controls review is where we can close that gap — anything you want to go over before you get started?`;
-  }
-  if (managerLeading) {
-    return `Hey, saw our scores from the exercise — ${cScore} points combined. Some of that material was tough for both of us. Other pairs are ahead on the combined leaderboard, so let's use the controls review to make up some ground — anything you want to go over?`;
   }
   return `Hey, saw our scores from the exercise — ${cScore} points combined. Other pairs are ahead of us right now, but the controls review is a chance for us to catch up — anything you want to go over before you get started?`;
 }
@@ -450,11 +461,22 @@ function getInitialMessage(score, condition) {
 
   // Intro mode — score-based, condition-specific, ends with a question
   if (condition === "competitive" || condition === "comp") {
-    if (score !== null && score >= 2200) {
-      return `Hey, saw your score from the training exercise — you got ${score} points, which is one of the stronger scores we've seen from the exercise. Is there anything you want to go over before you start the controls review?`;
+    const veryHigh = score !== null && score >= 2200;
+    const aboveAvg = ABOVE_AVERAGE === true;
+    const belowAvg = ABOVE_AVERAGE === false;
+
+    if (score !== null && veryHigh) {
+      return `Hey, saw your score from the training exercise — you got ${score} points, which is one of the stronger scores we've seen. Is there anything you want to go over before you start the controls review?`;
     }
+    if (score !== null && aboveAvg) {
+      return `Hey, saw your score from the training exercise — you got ${score} points. You're above the group average, so you're not in the flagged range, but there are still others ahead of you. Is there anything you want to go over before you start the controls review?`;
+    }
+    if (score !== null && belowAvg) {
+      return `Hey, saw your score from the training exercise — you got ${score} points. Your score is below the group average, which puts you in the range the engagement team flags before the debrief. Is there anything you want to go over before you start the controls review?`;
+    }
+    // ABOVE_AVERAGE unknown — fall back to score tiers
     if (score !== null && score >= 800) {
-      return `Hey, saw your score from the training exercise — you got ${score} points. A few others on the team have finished too and their scores are in, so you're not at the top of the leaderboard just yet. Is there anything you want to go over before you start the controls review?`;
+      return `Hey, saw your score from the training exercise — you got ${score} points. A few others on the team have finished too and their scores are in. Is there anything you want to go over before you start the controls review?`;
     }
     if (score !== null && score >= 400) {
       return `Hey, saw your score from the training exercise — you got ${score} points. You're in the middle of the pack right now — a few others have scored higher. Is there anything you want to go over before you start the controls review?`;
